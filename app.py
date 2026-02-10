@@ -2,7 +2,6 @@ import streamlit as st
 import pandas as pd
 import random
 import os
-import time
 
 # 페이지 설정
 st.set_page_config(page_title="외관 퀴즈맞추기", layout="centered")
@@ -33,7 +32,6 @@ def submit_logic():
         st.session_state.score += 1
         # 정답일 때만 즉시 다음 문제 인덱스 준비
         st.session_state.current_idx = random.randint(0, len(data) - 1)
-        
     else:
         hint = data.iloc[st.session_state.current_idx]['hint']
         st.session_state.feedback = ("error", f"틀렸습니다! 힌트: {hint}")
