@@ -4,7 +4,7 @@ import random
 import os
 
 # 페이지 설정
-st.set_page_config(page_title="1000장 사진 퀴즈", layout="centered")
+st.set_page_config(page_title="외관 퀴즈맞추기", layout="centered")
 
 # 데이터 불러오기 (캐싱 처리로 속도 최적화)
 @st.cache_data
@@ -21,7 +21,8 @@ if 'current_idx' not in st.session_state:
     st.session_state.current_idx = random.randint(0, len(data) - 1)
 
 # 화면 상단
-st.title("🏆 무한 사진 퀴즈")
+st.image("imgaes/logo.png", width=100)
+st.title("엔카 사진퀴즈")
 st.write(f"현재 점수: {st.session_state.score}점")
 
 # 문제 표시
