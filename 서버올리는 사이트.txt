@@ -1,0 +1,1 @@
+httpsshare.streamlit.io   << 요기서 깃헙 서버 올려줌
