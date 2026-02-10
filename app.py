@@ -72,4 +72,5 @@ if st.session_state.trigger_check:
             time.sleep(3)
             st.rerun()
         else:
-            st.error(f"틀렸습니다! (남은 기회: {5 - st.session_state.wrong_count}번) 힌
+            st.error(f"틀렸습니다! (남은 기회: {5 - st.session_state.wrong_count}번) 힌트: {current_quiz['hint']}")
+            st.session_state.trigger_check = False # 다시 입력을 기다림
