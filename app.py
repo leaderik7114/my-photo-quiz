@@ -21,9 +21,11 @@ if 'current_idx' not in st.session_state:
     st.session_state.current_idx = random.randint(0, len(data) - 1)
 if 'wrong_count' not in st.session_state:
     st.session_state.wrong_count = 0
-# 제출 여부를 확인하기 위한 플래그
 if 'trigger_check' not in st.session_state:
     st.session_state.trigger_check = False
+# [추가] 입력창 초기화를 위한 랜덤 키 번호
+if 'input_key' not in st.session_state:
+    st.session_state.input_key = 0
 
 # 화면 UI 구성
 st.image("images/logo.png", width=100)
@@ -31,27 +33,24 @@ st.title("엔카 사진퀴즈")
 st.subheader("(띄어쓰기는 하시면 안됩니다..)")
 st.subheader(f"현재 점수: {st.session_state.score}점")
 
-# 문제 데이터 설정
 current_quiz = data.iloc[st.session_state.current_idx]
 img_path = os.path.join("images", current_quiz['filename'])
 
-# 문제 표시
 if os.path.exists(img_path):
     st.image(img_path, use_container_width=True)
-else:
-    st.error(f"이미지를 찾을 수 없습니다: {img_path}")
 
-# 콜백 함수: 상태만 변경
+# 콜백 함수
 def on_input_submit():
     st.session_state.trigger_check = True
 
-# 입력창 및 제출 버튼
-st.text_input("정답을 입력하세요", key="input_field", on_change=on_input_submit)
+# [수정] key 값에 세션 변수를 넣어서 매번 바뀌게 설정
+st.text_input("정답을 입력하세요", key=f"input_{st.session_state.input_key}", on_change=on_input_submit)
 st.button("제출하기", on_click=on_input_submit)
 
-# --- 실제 정답 체크 로직 (메인 영역) ---
+# --- 실제 정답 체크 로직 ---
 if st.session_state.trigger_check:
-    user_answer = st.session_state.input_field.strip()
+    # 현재 활성화된 키의 값을 가져옴
+    user_answer = st.session_state[f"input_{st.session_state.input_key}"].strip()
     correct_answer = str(current_quiz['answer']).strip()
     
     if user_answer == correct_answer:
@@ -59,8 +58,9 @@ if st.session_state.trigger_check:
         st.session_state.score += 1
         st.session_state.current_idx = random.randint(0, len(data) - 1)
         st.session_state.wrong_count = 0
-        st.session_state.trigger_check = False # 플래그 리셋
-        time.sleep(2) # 이제 여기서 sleep이 정상 작동하여 메시지를 보여줍니다.
+        st.session_state.input_key += 1 # [핵심] 키 번호를 바꿔서 입력창 리셋
+        st.session_state.trigger_check = False
+        time.sleep(2)
         st.rerun()
     else:
         st.session_state.wrong_count += 1
@@ -68,9 +68,10 @@ if st.session_state.trigger_check:
             st.warning(f"5회 실패! 정답은 [{correct_answer}] 였습니다.")
             st.session_state.current_idx = random.randint(0, len(data) - 1)
             st.session_state.wrong_count = 0
+            st.session_state.input_key += 1 # [핵심] 키 번호를 바꿔서 입력창 리셋
             st.session_state.trigger_check = False
             time.sleep(3)
             st.rerun()
         else:
             st.error(f"틀렸습니다! (남은 기회: {5 - st.session_state.wrong_count}번) 힌트: {current_quiz['hint']}")
-            st.session_state.trigger_check = False # 다시 입력을 기다림
+            st.session_state.trigger_check = False
