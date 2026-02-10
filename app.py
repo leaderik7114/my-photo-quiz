@@ -34,6 +34,8 @@ def submit_logic():
         # 정답일 때만 즉시 다음 문제 인덱스 준비
         st.session_state.current_idx = random.randint(0, len(data) - 1)
         time.sleep(0.7)
+        feedback_container.empty()
+        st.rerun()
         
     else:
         hint = data.iloc[st.session_state.current_idx]['hint']
