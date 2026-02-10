@@ -60,7 +60,7 @@ if st.session_state.trigger_check:
         st.session_state.wrong_count = 0
         st.session_state.input_key += 1 # [핵심] 키 번호를 바꿔서 입력창 리셋
         st.session_state.trigger_check = False
-        time.sleep(2)
+        time.sleep(1)
         st.rerun()
     else:
         st.session_state.wrong_count += 1
@@ -70,8 +70,11 @@ if st.session_state.trigger_check:
             st.session_state.wrong_count = 0
             st.session_state.input_key += 1 # [핵심] 키 번호를 바꿔서 입력창 리셋
             st.session_state.trigger_check = False
-            time.sleep(3)
+            time.sleep(2)
             st.rerun()
         else:
             st.error(f"틀렸습니다! (남은 기회: {5 - st.session_state.wrong_count}번) 힌트: {current_quiz['hint']}")
+            st.session_state.input_key +=1
             st.session_state.trigger_check = False
+            time.sleep(0.5)
+            st.rerun()
