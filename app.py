@@ -21,7 +21,7 @@ if 'current_idx' not in st.session_state:
     st.session_state.current_idx = random.randint(0, len(data) - 1)
 
 # 화면 상단
-st.image("imgaes/logo.png", width=100)
+st.image("images/logo.png", width=100)
 st.title("엔카 사진퀴즈")
 st.write(f"현재 점수: {st.session_state.score}점")
 
