@@ -42,6 +42,7 @@ def submit_logic():
 # 화면 UI 구성
 st.image("images/logo.png", width=100)
 st.title("엔카 사진퀴즈")
+st.subheader(f"(띄어쓰기는 하시면 안됩니다..)")
 st.subheader(f"현재 점수: {st.session_state.score}점")
 
 # 문제 표시
