@@ -73,14 +73,7 @@ with col1:
 
     st.write(f"현재 점수: **{st.session_state.score}**점")
 
-""" 
-몇문제 진행중인지 확인하는 코드
 
-with col2:
-
-    st.write(f"문제 진행: **{st.session_state.current_step + 1} / {len(data)}**")
-
- """
 
 # 문제 이미지 설정
 
