@@ -63,7 +63,7 @@ total_q = len(st.session_state.quiz_indices)
 current_idx = st.session_state.quiz_indices[st.session_state.current_step]
 current_quiz = data.iloc[current_idx]
 
-st.subheader("(띄어쓰기 없이 입력해 주세요!)")
+st.subheader("외관사진만으로 등급을 맞춰보세요!")
 col1, col2 = st.columns(2)
 with col1:
     st.write(f"현재 점수: **{st.session_state.score}**점")
