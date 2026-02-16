@@ -41,7 +41,7 @@ if st.sidebar.button("🔄 게임 시작 / 리셋"):
 
 # --- 세션 상태 최초 초기화 (앱 처음 실행 시) ---
 if 'quiz_indices' not in st.session_state:
-    st.info("왼쪽 사이드바에서 문제 수를 선택하고 [게임 시작] 버튼을 눌러주세요!")
+    st.info("왼쪽 사이드바에서 (<<화살표) 문제 수를 선택하고 [게임 시작] 버튼을 눌러주세요!")
     st.stop()
 
 # --- 화면 UI 구성 ---
