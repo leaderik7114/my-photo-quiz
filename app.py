@@ -87,64 +87,62 @@ elif st.session_state.is_finished:
 
 # [CASE 3] 게임 진행 중
 else:
-    # --- 제목 및 우측 상단 '처음으로' 버튼 배치 ---
-    header_col, btn_col = st.columns([7, 3])
-    
-    with header_col:
-        st.subheader("외관사진으로 등급맞추기!")
-    
-    with btn_col:
-        # 버튼을 우측 정렬 느낌으로 배치하기 위해 간격 조정
-        st.write("") # 수직 위치 조절용 빈 줄
-        if st.button("🏠 처음으로", use_container_width=True):
-            st.session_state.game_started = False
-            st.rerun()
+    # 사이드바에는 간단한 조작 버튼만 배치
+    if st.sidebar.button("🏠 처음으로 (그만하기)"):
+        st.session_state.game_started = False
+        st.rerun()
 
-    # 진행 데이터 관리
+    # 현재 문제 정보 가져오기
     total_q = len(st.session_state.quiz_indices)
-    current_step = st.session_state.current_step
-    current_idx = st.session_state.quiz_indices[current_step]
+    current_idx = st.session_state.quiz_indices[st.session_state.current_step]
     current_quiz = data.iloc[current_idx]
 
-    # 상단 상태바
-    st.progress((current_step) / total_q)
+    # 상단 정보 표시
+    st.subheader("외관사진으로 등급맞추기!")
+    progress_val = (st.session_state.current_step) / total_q
+    st.progress(progress_val)
+    
     c1, c2 = st.columns(2)
     with c1: st.write(f"현재 점수: **{st.session_state.score}**점")
-    with c2: st.write(f"문제 진행: **{current_step + 1} / {total_q}**")
+    with c2: st.write(f"문제 진행: **{st.session_state.current_step + 1} / {total_q}**")
 
     # 이미지 로드
     img_path = os.path.join("images", current_quiz['filename'])
     if os.path.exists(img_path):
         st.image(img_path, use_container_width=True)
     else:
-        st.warning(f"⚠️ 이미지를 로드할 수 없습니다: {current_quiz['filename']}")
+        st.error(f"이미지를 찾을 수 없습니다: {current_quiz['filename']}")
 
-    # 정답 입력 (chat_input은 하단 고정)
-    user_answer = st.chat_input("정답을 입력하세요!")
+    # 입력창 (채팅 입력 방식 혹은 텍스트 입력 방식 선택 가능)
+    user_answer = st.chat_input("정답을 입력하고 엔터를 누르세요!")
 
     if user_answer:
-        ans_clean = user_answer.replace(" ", "").lower()
-        correct_clean = str(current_quiz['answer']).replace(" ", "").lower()
-
-        if ans_clean == correct_clean:
+        # 공백 제거 및 소문자 변환 비교
+        processed_user = user_answer.replace(" ", "").lower()
+        correct_answer = str(current_quiz['answer']).replace(" ", "").lower()
+        display_answer = str(current_quiz['answer']).strip()
+        
+        if processed_user == correct_answer:
             st.success("정답입니다! 🎉")
             st.session_state.score += 1
-            time.sleep(1)
-            st.session_state.current_step += 1
-            st.session_state.wrong_count = 0
+            is_correct = True
         else:
             st.session_state.wrong_count += 1
             if st.session_state.wrong_count >= 5:
-                st.error(f"❌ 5회 실패! 정답은 [{current_quiz['answer']}]")
-                time.sleep(2)
-                st.session_state.current_step += 1
-                st.session_state.wrong_count = 0
+                st.error(f"❌ 5회 실패! 정답은 [{display_answer}] 였습니다.")
+                is_correct = True # 5번 틀리면 정답 공개 후 다음 문제로
             else:
                 st.warning(f"틀렸습니다! (남은 기회: {5 - st.session_state.wrong_count}번)")
                 st.info(f"💡 힌트: {current_quiz['hint']}")
+                is_correct = False
 
-        # 다음 문제로 넘어가기 전 종료 체크
-        if st.session_state.current_step >= total_q:
-            st.session_state.is_finished = True
-        
-        st.rerun()
+        if is_correct:
+            st.session_state.wrong_count = 0
+            st.session_state.current_step += 1
+            
+            # 모든 문제를 다 풀었는지 확인
+            if st.session_state.current_step >= total_q:
+                st.session_state.is_finished = True
+            
+            time.sleep(1.0)
+            st.rerun()
