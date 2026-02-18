@@ -40,7 +40,7 @@ if not st.session_state.game_started:
         if os.path.exists("images/logo.png"):
             st.image("images/logo.png", use_container_width=True)
         
-        st.title("🚗 엔카 사진퀴즈")
+        st.title("🚗 외관사진퀴즈 ")
         st.write("외관 사진만 보고 차량의 등급을 맞춰보세요!")
         st.write("---")
         
@@ -107,3 +107,42 @@ else:
     with c2: st.write(f"문제 진행: **{st.session_state.current_step + 1} / {total_q}**")
 
     # 이미지 로드
+    img_path = os.path.join("images", current_quiz['filename'])
+    if os.path.exists(img_path):
+        st.image(img_path, use_container_width=True)
+    else:
+        st.error(f"이미지를 찾을 수 없습니다: {current_quiz['filename']}")
+
+    # 입력창 (채팅 입력 방식 혹은 텍스트 입력 방식 선택 가능)
+    user_answer = st.chat_input("정답을 입력하고 엔터를 누르세요!")
+
+    if user_answer:
+        # 공백 제거 및 소문자 변환 비교
+        processed_user = user_answer.replace(" ", "").lower()
+        correct_answer = str(current_quiz['answer']).replace(" ", "").lower()
+        display_answer = str(current_quiz['answer']).strip()
+        
+        if processed_user == correct_answer:
+            st.success("정답입니다! 🎉")
+            st.session_state.score += 1
+            is_correct = True
+        else:
+            st.session_state.wrong_count += 1
+            if st.session_state.wrong_count >= 5:
+                st.error(f"❌ 5회 실패! 정답은 [{display_answer}] 였습니다.")
+                is_correct = True # 5번 틀리면 정답 공개 후 다음 문제로
+            else:
+                st.warning(f"틀렸습니다! (남은 기회: {5 - st.session_state.wrong_count}번)")
+                st.info(f"💡 힌트: {current_quiz['hint']}")
+                is_correct = False
+
+        if is_correct:
+            st.session_state.wrong_count = 0
+            st.session_state.current_step += 1
+            
+            # 모든 문제를 다 풀었는지 확인
+            if st.session_state.current_step >= total_q:
+                st.session_state.is_finished = True
+            
+            time.sleep(1.0)
+            st.rerun()
