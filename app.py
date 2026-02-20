@@ -32,8 +32,21 @@ st.markdown("""
         max-width: 600px;
         padding-top: 5rem;
     }
+    /* 우측 하단 made by 문구 스타일 */
+    .made-by {
+        position: fixed;
+        bottom: 10px;
+        right: 15px;
+        font-size: 0.8rem;
+        color: #aaaaaa;
+        z-index: 100;
+        font-family: sans-serif;
+    }
     </style>
     """, unsafe_allow_html=True)
+
+# 우측 하단 문구 출력 (모든 화면에서 공통으로 보임)
+st.markdown('<div class="made-by">made by 진단광고제작팀 최인규</div>', unsafe_allow_html=True)
 
 # 2. 데이터 로드 함수
 @st.cache_data
