@@ -7,6 +7,34 @@ import time
 # 1. 페이지 설정
 st.set_page_config(page_title="엔카 사진퀴즈", layout="centered", page_icon="🚗")
 
+# --- CSS 스타일 정의 (줄바꿈 방지 및 디자인 고정) ---
+st.markdown("""
+    <style>
+    /* 제목 스타일: 줄바꿈 절대 방지 */
+    .main-title {
+        font-size: 2.8rem;
+        font-weight: 800;
+        text-align: center;
+        white-space: nowrap;      /* 한 줄 고정 */
+        word-break: keep-all;     /* 단어 단위 끊김 방지 */
+        margin-bottom: 0.5rem;
+    }
+    /* 설명 문구 스타일: 가독성 유지 */
+    .sub-title {
+        font-size: 1.2rem;
+        text-align: center;
+        white-space: nowrap;
+        color: #666;
+        margin-bottom: 2rem;
+    }
+    /* 메인 컨테이너 너비 제한 (너무 퍼지지 않게) */
+    .block-container {
+        max-width: 600px;
+        padding-top: 5rem;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
 # 2. 데이터 로드 함수
 @st.cache_data
 def load_data():
@@ -33,47 +61,45 @@ if 'is_finished' not in st.session_state:
 
 # [CASE 1] 게임이 아직 시작되지 않았을 때 (첫 화면)
 if not st.session_state.game_started:
-    st.markdown("<br><br>", unsafe_allow_html=True)
-    col1, col2, col3 = st.columns([1, 2, 1])
-    with col2:
-        # 로고 표시 (경로에 파일이 있을 경우)
-        if os.path.exists("images/logo.png"):
-            st.image("images/logo.png", use_container_width=True)
+    st.markdown("<br>", unsafe_allow_html=True)
+    
+    # 로고 표시
+    if os.path.exists("images/logo.png"):
+        st.image("images/logo.png", use_container_width=True)
+    
+    # CSS 클래스가 적용된 제목과 설명
+    st.markdown('<p class="main-title">🚗 외관 사진 퀴즈</p>', unsafe_allow_html=True)
+    st.markdown('<p class="sub-title">사진만 보고 차량의 등급을 맞춰보세요!</p>', unsafe_allow_html=True)
+    
+    st.write("---")
+    
+    # 문제 수 선택
+    quiz_count_options = [10, 30, 50, "전체"]
+    selected_count = st.select_slider(
+        "출제할 문제 수를 선택하세요",
+        options=quiz_count_options,
+        value=10
+    )
+    
+    st.write("<br>", unsafe_allow_html=True)
+    
+    if st.button("🚀 게임 시작하기", use_container_width=True, type="primary"):
+        all_indices = list(range(len(data)))
+        random.shuffle(all_indices)
         
-        st.title("🚗 외관사진퀴즈 ")
-        st.write("외관 사진만 보고 차량의 등급을 맞춰보세요!")
-        st.write("---")
+        if selected_count != "전체":
+            limit = min(int(selected_count), len(all_indices))
+            selected_indices = all_indices[:limit]
+        else:
+            selected_indices = all_indices
         
-        # 문제 수 선택
-        quiz_count_options = [10, 30, 50, "전체"]
-        selected_count = st.select_slider(
-            "출제할 문제 수를 선택하세요",
-            options=quiz_count_options,
-            value=10
-        )
-        
-        st.write("<br>", unsafe_allow_html=True)
-        
-        # 시작 버튼
-        if st.button("🚀 게임 시작하기", use_container_width=True, type="primary"):
-            # 문제 섞기 및 선택
-            all_indices = list(range(len(data)))
-            random.shuffle(all_indices)
-            
-            if selected_count != "전체":
-                limit = min(int(selected_count), len(all_indices))
-                selected_indices = all_indices[:limit]
-            else:
-                selected_indices = all_indices
-            
-            # 게임 데이터 세션에 저장
-            st.session_state.quiz_indices = selected_indices
-            st.session_state.current_step = 0
-            st.session_state.score = 0
-            st.session_state.wrong_count = 0
-            st.session_state.game_started = True
-            st.session_state.is_finished = False
-            st.rerun()
+        st.session_state.quiz_indices = selected_indices
+        st.session_state.current_step = 0
+        st.session_state.score = 0
+        st.session_state.wrong_count = 0
+        st.session_state.game_started = True
+        st.session_state.is_finished = False
+        st.rerun()
 
 # [CASE 2] 모든 문제를 풀었을 때 (결과 화면)
 elif st.session_state.is_finished:
