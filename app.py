@@ -32,22 +32,17 @@ st.markdown("""
         max-width: 600px;
         padding-top: 5rem;
     }
-    /* 우측 하단 made by 문구 스타일 */
-    .made-by {
-        position: fixed;
-        bottom: 10px;
-        right: 15px;
+    /* 중앙 하단 소소한 문구 스타일 */
+    .made-by-center {
+        text-align: center;
         font-size: 0.8rem;
-        color: #aaaaaa;
-        z-index: 100;
+        color: #bbbbbb;
+        margin-top: 50px; /* 위쪽 콘텐츠와 간격 조절 */
+        padding-bottom: 20px;
         font-family: sans-serif;
     }
     </style>
     """, unsafe_allow_html=True)
-
-# 우측 하단 문구 출력 (모든 화면에서 공통으로 보임)
-st.markdown('<div class="made-by">made by 진단광고제작팀 최인규</div>', unsafe_allow_html=True)
-
 # 2. 데이터 로드 함수
 @st.cache_data
 def load_data():
@@ -114,6 +109,9 @@ if not st.session_state.game_started:
         st.session_state.is_finished = False
         st.rerun()
 
+        # --- 시작 화면 하단에 중앙 배치 ---
+    st.markdown('<div class="made-by-center">made by 진단광고제작팀 최인규</div>', unsafe_allow_html=True)
+
 # [CASE 2] 모든 문제를 풀었을 때 (결과 화면)
 elif st.session_state.is_finished:
     st.balloons()
@@ -123,6 +121,9 @@ elif st.session_state.is_finished:
     if st.button("처음으로 돌아가기", use_container_width=True):
         st.session_state.game_started = False
         st.rerun()
+# 종료 화면 하단에도 워터마크 표시
+    st.markdown('<div class="made-by-center">made by 진단광고제작팀 최인규</div>', unsafe_allow_html=True)
+
 
 # [CASE 3] 게임 진행 중
 else:
