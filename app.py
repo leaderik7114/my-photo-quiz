@@ -49,6 +49,13 @@ def load_data():
     try:
         # answers.csv 로드 (브랜드, 차종 등 추가 컬럼이 있어도 유연하게 대응)
         df = pd.read_csv("answers.csv")
+
+        if 'filename' in df.columns:
+            # '후.'이 포함되지 않은 행만 필터링하여 다시 df에 저장
+            df = df[~df['filename'].str.contains('후\\.', na=False)]
+
+
+        
         # 힌트 컬럼이 없을 경우를 대비해 기본값 설정
         if 'hint' not in df.columns:
             df['hint'] = "힌트가 제공되지 않는 문제입니다."
