@@ -133,36 +133,45 @@ else:
     current_idx = st.session_state.quiz_indices[st.session_state.current_step]
     current_quiz = data.iloc[current_idx]
 
-    # 상단 진행도 표시
-    st.caption(f"문제 {st.session_state.current_step + 1} / {total_q}")
+    # --- 상단 레이아웃 여백 확보 ---
+    st.markdown("<div style='margin-top: 20px;'></div>", unsafe_allow_html=True) # 상단 여백 추가
+    
+    # 정보 표시 (한눈에 들어오게 디자인 변경)
+    col_status1, col_status2 = st.columns([2, 1])
+    with col_status1:
+        st.markdown(f"#### 📝 문제 **{st.session_state.current_step + 1}** / {total_q}")
+    with col_status2:
+        st.markdown(f"#### ⭐ 점수: **{st.session_state.score}**")
+    
     st.progress((st.session_state.current_step + 1) / total_q)
-    st.subheader("이 차량의 등급은 무엇일까요?")
+    st.markdown("---") # 구분선 추가로 가독성 확보
 
-    # 이미지 경로 처리 (A.png + A후.png)
+    # 이미지 경로 처리
     base_file = current_quiz['filename']
     name, ext = os.path.splitext(base_file)
     front_path = os.path.join("images", base_file)
     back_path = os.path.join("images", f"{name}후{ext}")
 
-    # 이미지 출력 (좌우 배치)
+    # 이미지 출력 (여백 및 캡션 강조)
     img_col1, img_col2 = st.columns(2)
     with img_col1:
         if os.path.exists(front_path):
-            st.image(front_path, caption="앞면", use_container_width=True)
+            st.image(front_path, caption="[ 차량 앞면 ]", use_container_width=True)
         else:
-            st.error("앞면 사진 없음")
+            st.error("앞면 사진을 찾을 수 없습니다.")
     with img_col2:
         if os.path.exists(back_path):
-            st.image(back_path, caption="뒷면", use_container_width=True)
+            st.image(back_path, caption="[ 차량 뒷면 ]", use_container_width=True)
         else:
-            st.warning("뒷면 사진('후') 없음")
+            st.warning("뒷면 사진('후')이 없습니다.")
 
-    st.write("") # 시각적 간격
+    st.write("") # 간격
 
-    # 정답 입력 폼 (사진 바로 아래 위치 및 엔터 키 지원)
+    # 정답 입력 폼 (카드 형태 유지)
     with st.form(key="quiz_form", clear_on_submit=True):
-        user_answer = st.text_input("정답을 입력하세요 (예: 카니발 4세대)", placeholder="정답을 적고 엔터를 누르세요")
-        submit_btn = st.form_submit_button("정답 확인", use_container_width=True)
+        st.markdown("**이 차량의 정확한 등급을 입력하세요**")
+        user_answer = st.text_input("입력창", label_visibility="collapsed", placeholder="여기에 정답 입력...")
+        submit_btn = st.form_submit_button("정답 확인하기", use_container_width=True)
 
         if submit_btn:
             if user_answer:
@@ -195,4 +204,4 @@ else:
                         st.warning(f"틀렸습니다! (남은 기회: {5 - st.session_state.wrong_count}번)")
                         st.info(f"💡 힌트: {current_quiz['hint']}")
             else:
-                st.warning("내용을 입력해주세요!")
+                st.warning("정답을 입력한 후 버튼을 눌러주세요.")
