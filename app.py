@@ -146,12 +146,26 @@ else:
     with c1: st.write(f"현재 점수: **{st.session_state.score}**점")
     with c2: st.write(f"문제 진행: **{st.session_state.current_step + 1} / {total_q}**")
 
-    # 이미지 로드
-    img_path = os.path.join("images", current_quiz['filename'])
-    if os.path.exists(img_path):
-        st.image(img_path, use_container_width=True)
-    else:
-        st.error(f"이미지를 찾을 수 없습니다: {current_quiz['filename']}")
+# --- 이미지 파일명 처리 로직 ---
+    # filename이 'A.png'라면 front는 'A.png', back은 'A후.png'가 됩니다.
+    base_file = current_quiz['filename']
+    name, ext = os.path.splitext(base_file)
+    
+    front_img_path = os.path.join("images", base_file)
+    back_img_path = os.path.join("images", f"{name}후{ext}")
+
+    # 좌우 배치
+    img_col1, img_col2 = st.columns(2)
+    with img_col1:
+        if os.path.exists(front_img_path):
+            st.image(front_img_path, caption="앞면 (Front)", use_container_width=True)
+        else:
+            st.error("앞면 이미지 없음")
+    with img_col2:
+        if os.path.exists(back_img_path):
+            st.image(back_img_path, caption="뒷면 (Rear)", use_container_width=True)
+        else:
+            st.warning("뒷면 이미지('후') 없음")
 
     # 입력창 (채팅 입력 방식 혹은 텍스트 입력 방식 선택 가능)
     user_answer = st.chat_input("정답을 입력하고 엔터를 누르세요!")
