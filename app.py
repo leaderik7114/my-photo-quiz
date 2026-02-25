@@ -161,7 +161,7 @@ else:
 
     # 정답 입력 폼 (사진 바로 아래 위치 및 엔터 키 지원)
     with st.form(key="quiz_form", clear_on_submit=True):
-        user_answer = st.text_input("정답을 입력하세요 (예: 2.0 가솔린 프리미엄)", placeholder="정답을 적고 엔터를 누르세요")
+        user_answer = st.text_input("정답을 입력하세요 (예: 카니발 4세대)", placeholder="정답을 적고 엔터를 누르세요")
         submit_btn = st.form_submit_button("정답 확인", use_container_width=True)
 
         if submit_btn:
@@ -196,5 +196,3 @@ else:
                         st.info(f"💡 힌트: {current_quiz['hint']}")
             else:
                 st.warning("내용을 입력해주세요!")
-
-    st.markdown('<div class="made-by-center">made by 진단광고제작팀 최인규</div>', unsafe_allow_html=True)
