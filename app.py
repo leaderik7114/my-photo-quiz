@@ -144,58 +144,69 @@ else:
     current_idx = st.session_state.quiz_indices[st.session_state.current_step]
     current_quiz = data.iloc[current_idx]
 
-    # 상단 정보 표시
-    st.subheader("외관사진으로 등급맞추기!")
-    progress_val = (st.session_state.current_step) / total_q
-    st.progress(progress_val)
-    
-    c1, c2 = st.columns(2)
-    with c1: st.write(f"현재 점수: **{st.session_state.score}**점")
-    with c2: st.write(f"문제 진행: **{st.session_state.current_step + 1} / {total_q}**")
+   # --- 레이아웃 구성 ---
+    # 중앙 정렬을 위한 컨테이너
+    main_container = st.container()
 
-# --- 이미지 파일명 처리 로직 ---
-    # filename이 'A.png'라면 front는 'A.png', back은 'A후.png'가 됩니다.
-    base_file = current_quiz['filename']
-    name, ext = os.path.splitext(base_file)
-    
-    front_img_path = os.path.join("images", base_file)
-    back_img_path = os.path.join("images", f"{name}후{ext}")
-
-    # 좌우 배치
-    img_col1, img_col2 = st.columns(2)
-    with img_col1:
-        if os.path.exists(front_img_path):
-            st.image(front_img_path, caption="앞면 (Front)", use_container_width=True)
-        else:
-            st.error("앞면 이미지 없음")
-    with img_col2:
-        if os.path.exists(back_img_path):
-            st.image(back_img_path, caption="뒷면 (Rear)", use_container_width=True)
-        else:
-            st.warning("뒷면 이미지('후') 없음")
-
-    # 입력창 (채팅 입력 방식 혹은 텍스트 입력 방식 선택 가능)
-    user_answer = st.chat_input("정답을 입력하고 엔터를 누르세요!")
-
-    if user_answer:
-        # 공백 제거 및 소문자 변환 비교
-        processed_user = user_answer.replace(" ", "").lower()
-        correct_answer = str(current_quiz['answer']).replace(" ", "").lower()
-        display_answer = str(current_quiz['answer']).strip()
+    with main_container:
+        # 진행도 표시
+        st.caption(f"문제 {st.session_state.current_step + 1} / {total_q}  |  현재 점수: {st.session_state.score}점")
+        st.progress((st.session_state.current_step + 1) / total_q)
         
-        if processed_user == correct_answer:
-            st.success("정답입니다! 🎉")
-            st.session_state.score += 1
-            is_correct = True
-        else:
-            st.session_state.wrong_count += 1
-            if st.session_state.wrong_count >= 5:
-                st.error(f"❌ 5회 실패! 정답은 [{display_answer}] 였습니다.")
-                is_correct = True # 5번 틀리면 정답 공개 후 다음 문제로
-            else:
-                st.warning(f"틀렸습니다! (남은 기회: {5 - st.session_state.wrong_count}번)")
-                st.info(f"💡 힌트: {current_quiz['hint']}")
-                is_correct = False
+        st.subheader("🚗 이 차량의 등급은 무엇일까요?")
+
+        # 이미지 경로 설정
+        base_file = current_quiz['filename']
+        name, ext = os.path.splitext(base_file)
+        front_path = os.path.join("images", base_file)
+        back_path = os.path.join("images", f"{name}후{ext}")
+
+        # 사진 출력 (좌우 배치)
+        img_col1, img_col2 = st.columns(2)
+        with img_col1:
+            if os.path.exists(front_path):
+                st.image(front_path, caption="앞면", use_container_width=True)
+        with img_col2:
+            if os.path.exists(back_path):
+                st.image(back_path, caption="뒷면", use_container_width=True)
+
+        st.write("") # 간격 조절
+        
+        # --- 입력 폼 (사진 바로 아래 배치) ---
+        # st.form을 사용하면 엔터키로 제출이 가능하며 시선이 분산되지 않습니다.
+        with st.form(key="answer_form", clear_on_submit=True):
+            user_answer = st.text_input("정답을 입력하세요 (엔터 키 가능)", placeholder="예: 그랜저 IG 프리미엄")
+            submit_button = st.form_submit_button("정답 확인", use_container_width=True)
+
+            if submit_button and user_answer:
+                processed_user = user_answer.replace(" ", "").lower()
+                correct_answer = str(current_quiz['answer']).replace(" ", "").lower()
+                display_answer = str(current_quiz['answer']).strip()
+                
+                if processed_user == correct_answer:
+                    st.success("정답입니다! 🎉")
+                    st.session_state.score += 1
+                    st.session_state.wrong_count = 0
+                    st.session_state.current_step += 1
+                    
+                    if st.session_state.current_step >= total_q:
+                        st.session_state.is_finished = True
+                    
+                    time.sleep(1.2)
+                    st.rerun()
+                else:
+                    st.session_state.wrong_count += 1
+                    if st.session_state.wrong_count >= 5:
+                        st.error(f"❌ 정답은 [{display_answer}] 였습니다.")
+                        time.sleep(2.0)
+                        st.session_state.wrong_count = 0
+                        st.session_state.current_step += 1
+                        if st.session_state.current_step >= total_q:
+                            st.session_state.is_finished = True
+                        st.rerun()
+                    else:
+                        st.warning(f"틀렸습니다! (남은 기회: {5 - st.session_state.wrong_count}번)")
+                        st.info(f"💡 힌트: {current_quiz['hint']}")
 
         if is_correct:
             st.session_state.wrong_count = 0
