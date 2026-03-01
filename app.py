@@ -130,8 +130,8 @@ if not st.session_state.game_started:
         for k in list(st.session_state.keys()):
             if k.startswith("opts_"): del st.session_state[k]
         st.rerun()
-
-        st.markdown('<div class="made-by-center">made by 진단광고제작팀 최인규</div>', unsafe_allow_html=True)
+st.markdown('<div class="made-by-footer">made by 진단광고제작팀 최인규</div>', unsafe_allow_html=True)
+        
 # --- [CASE 2] 결과 화면 ---
 elif st.session_state.is_finished:
     st.balloons()
