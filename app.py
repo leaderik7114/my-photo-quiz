@@ -100,9 +100,22 @@ elif st.session_state.is_finished:
     st.balloons()
     st.markdown("<h2 style='text-align:center;'>🏁 결과 확인</h2>", unsafe_allow_html=True)
     st.markdown(f"<div style='background-color:#f0f2f6; padding:30px; border-radius:15px; text-align:center;'><h3>최종 점수: <b>{st.session_state.score}</b> / {len(st.session_state.quiz_indices)}</h3></div>", unsafe_allow_html=True)
+    
     if st.button("처음으로 돌아가기", use_container_width=True):
+        # 핵심: 모든 게임 관련 상태를 초기값으로 되돌립니다.
         st.session_state.game_started = False
-        st.rerun()
+        st.session_state.is_finished = False
+        st.session_state.current_step = 0
+        st.session_state.score = 0
+        st.session_state.retry_chance = True
+        
+        # 이전 게임의 보기(options) 데이터 삭제
+        for k in list(st.session_state.keys()):
+            if k.startswith("opts_"):
+                del st.session_state[k]
+                
+        st.rerun()  # 상태를 초기화한 후 화면을 새로고침합니다.
+
     st.markdown('<div class="made-by-footer">made by 진단광고제작팀 최인규</div>', unsafe_allow_html=True)
 
 # --- [CASE 3] 게임 진행 ---
