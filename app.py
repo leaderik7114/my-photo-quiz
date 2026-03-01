@@ -158,7 +158,7 @@ else:
     with col_l:
         st.markdown(f"#### 📝 문제 {st.session_state.current_step + 1} / {total_q}")
     with col_r:
-        if st.button("🏠"):
+        if st.button("홈으로🏠"):
             st.session_state.game_started = False
             st.rerun()
             
@@ -203,13 +203,13 @@ else:
     # 결과 판정
     if user_choice:
         if user_choice == correct_answer:
-            feedback_placeholder.success("정답입니다! 탁월한 눈썰미시네요! 🎉")
+            feedback_placeholder.success("정답입니다! 🎉")
             st.session_state.score += 1
             time.sleep(1.2)
         else:
             feedback_placeholder.error(f"오답입니다! ❌ 정답은 [{correct_answer}]")
             st.info(f"💡 힌트: {current_quiz['hint']}")
-            time.sleep(3.0)
+            time.sleep(2.0)
 
         st.session_state.current_step += 1
         if st.session_state.current_step >= total_q:
