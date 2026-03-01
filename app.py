@@ -5,23 +5,23 @@ import os
 import time
 import difflib
 
-# 1. 페이지 설정 및 커스텀 CSS (여백 수정)
+# 1. 페이지 설정 및 커스텀 CSS (상단 여백 및 하단 스타일 보강)
 st.set_page_config(page_title="엔카 사진퀴즈", layout="centered", page_icon="🚗")
 
 st.markdown("""
     <style>
-    /* 1. 전체 컨테이너를 아래로 내림 */
+    /* 상단 잘림 방지를 위한 안전 여백 */
     .block-container { 
         max-width: 700px; 
-        padding-top: 5rem !important;  /* 상단 여백을 대폭 추가 */
+        padding-top: 6rem !important; 
+        padding-bottom: 5rem !important;
     }
     
-    /* 2. 제목 스타일 및 위쪽 여백 */
+    /* 제목 및 부제목 스타일 */
     .main-title { 
         font-size: 2.5rem; 
         font-weight: 800; 
         text-align: center; 
-        margin-top: 2rem; /* 제목 위쪽 추가 여백 */
         margin-bottom: 0.5rem; 
         color: #E01010; 
     }
@@ -33,20 +33,23 @@ st.markdown("""
         margin-bottom: 2rem; 
     }
 
-    /* 버튼 스타일 */
+    /* 버튼 공통 스타일 */
     .stButton > button { 
         height: 3.8rem; 
         font-size: 1.05rem !important; 
         font-weight: 600;
         border-radius: 12px;
     }
-    
-    .made-by-center { 
+
+    /* 제작자 정보 스타일 (하단 고정 느낌) */
+    .made-by-footer { 
         text-align: center; 
-        font-size: 0.8rem; 
-        color: #bbbbbb; 
-        margin-top: 50px; 
-        padding-bottom: 30px;
+        font-size: 0.85rem; 
+        color: #aaaaaa; 
+        margin-top: 60px; 
+        padding-top: 20px;
+        border-top: 1px solid #eeeeee;
+        font-family: sans-serif;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -62,7 +65,7 @@ def load_data():
             df['hint'] = "힌트가 제공되지 않는 문제입니다."
         return df.fillna("")
     except FileNotFoundError:
-        st.error("데이터 파일을 찾을 수 없습니다.")
+        st.error("데이터 파일(answers.csv)을 찾을 수 없습니다.")
         return pd.DataFrame(columns=['filename', 'answer', 'hint'])
 
 def get_intelligent_options(current_answer, all_answers):
@@ -107,16 +110,14 @@ if 'is_finished' not in st.session_state: st.session_state.is_finished = False
 
 # --- [CASE 1] 시작 화면 ---
 if not st.session_state.game_started:
+    st.markdown('<p class="main-title">🚗 엔카 사진 퀴즈</p>', unsafe_allow_html=True)
+    st.markdown('<p class="sub-title">앞/뒤 사진을 보고 정확한 등급을 맞혀보세요!</p>', unsafe_allow_html=True)
     
     if os.path.exists("images/logo.png"):
         st.image("images/logo.png", use_container_width=True)
-
-        st.markdown('<p class="main-title">🚗 엔카 사진 퀴즈</p>', unsafe_allow_html=True)
-        st.markdown('<p class="sub-title">사진을 보고 정확한 명칭을 맞혀보세요!</p>', unsafe_allow_html=True)
-    
     
     st.write("---")
-    quiz_count = st.select_slider("풀어볼 문제 수", options=[5, 10, 20, 30, 50, "전체"], value=10)
+    quiz_count = st.select_slider("풀어볼 문제 수 선택", options=[5, 10, 20, 30, 50, "전체"], value=10)
     
     if st.button("🚀 게임 시작하기", use_container_width=True, type="primary"):
         all_indices = list(range(len(data)))
@@ -130,34 +131,39 @@ if not st.session_state.game_started:
         for k in list(st.session_state.keys()):
             if k.startswith("opts_"): del st.session_state[k]
         st.rerun()
-st.markdown('<div class="made-by-footer">made by 진단광고제작팀 최인규</div>', unsafe_allow_html=True)
-        
+
+    st.markdown('<div class="made-by-footer">made by 진단광고제작팀 최인규</div>', unsafe_allow_html=True)
+
 # --- [CASE 2] 결과 화면 ---
 elif st.session_state.is_finished:
     st.balloons()
     st.markdown("<h2 style='text-align:center;'>🏁 결과 확인</h2>", unsafe_allow_html=True)
-    st.markdown(f"<div style='background-color:#f0f2f6; padding:20px; border-radius:15px; text-align:center;'><h3>최종 점수: {st.session_state.score} / {len(st.session_state.quiz_indices)}</h3></div>", unsafe_allow_html=True)
+    st.markdown(f"<div style='background-color:#f0f2f6; padding:30px; border-radius:15px; text-align:center;'><h3>최종 점수: <b>{st.session_state.score}</b> / {len(st.session_state.quiz_indices)}</h3></div>", unsafe_allow_html=True)
+    
     if st.button("처음으로 돌아가기", use_container_width=True):
         st.session_state.game_started = False
         st.rerun()
+    
+    st.markdown('<div class="made-by-footer">made by 진단광고제작팀 최인규</div>', unsafe_allow_html=True)
 
-# --- [CASE 3] 게임 중 ---
+# --- [CASE 3] 게임 진행 중 ---
 else:
     total_q = len(st.session_state.quiz_indices)
     current_idx = st.session_state.quiz_indices[st.session_state.current_step]
     current_quiz = data.iloc[current_idx]
     correct_answer = str(current_quiz['answer']).strip()
 
-    # 상단바 및 진행도
-    col_l, col_r = st.columns([5, 1])
-    with col_l: st.markdown(f"#### 📝 문제 {st.session_state.current_step + 1} / {total_q}")
-    with col_r: 
+    # 상단 정보 레이아웃
+    col_status_l, col_status_r = st.columns([5, 1])
+    with col_status_l: 
+        st.markdown(f"#### 📝 문제 {st.session_state.current_step + 1} / {total_q}")
+    with col_status_r: 
         if st.button("🏠"): 
             st.session_state.game_started = False
             st.rerun()
     st.progress((st.session_state.current_step + 1) / total_q)
 
-    # 이미지 출력
+    # 사진 출력 영역
     base_file = current_quiz['filename']
     name, ext = os.path.splitext(base_file)
     front_path, back_path = os.path.join("images", base_file), os.path.join("images", f"{name}후{ext}")
@@ -170,7 +176,7 @@ else:
 
     st.write("---")
 
-    # 보기 생성 및 정답 체크
+    # 객관식 보기 영역
     option_key = f"opts_{current_idx}"
     if option_key not in st.session_state:
         st.session_state[option_key] = get_intelligent_options(correct_answer, data['answer'])
@@ -178,7 +184,7 @@ else:
     options = st.session_state[option_key]
     st.markdown("**이 차량의 정확한 등급명은?**")
     
-    feedback_placeholder = st.empty()
+    feedback_area = st.empty()
     btn_cols = st.columns(2)
     user_choice = None
 
@@ -187,15 +193,17 @@ else:
             if st.button(opt, use_container_width=True, key=f"btn_{current_idx}_{i}"):
                 user_choice = opt
 
+    # 결과 판정 및 이동
     if user_choice:
         if user_choice == correct_answer:
-            feedback_placeholder.success("정답입니다! 🎉")
+            feedback_area.success("정답입니다! 🎉")
             st.session_state.score += 1
             time.sleep(1)
         else:
-            feedback_placeholder.error(f"오답! 정답: {correct_answer}")
+            feedback_area.error(f"오답! 정답은 [{correct_answer}] 입니다.")
             st.info(f"💡 힌트: {current_quiz['hint']}")
             time.sleep(2.5)
+            
         st.session_state.current_step += 1
         if st.session_state.current_step >= total_q: st.session_state.is_finished = True
         st.rerun()
