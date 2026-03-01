@@ -14,6 +14,18 @@ st.markdown("""
     .main-title { font-size: 2.5rem; font-weight: 800; text-align: center; color: #E01010; }
     .sub-title { font-size: 1.1rem; text-align: center; color: #555; margin-bottom: 2rem; }
     .stButton > button { height: 3.8rem; font-size: 1.05rem !important; font-weight: 600; border-radius: 12px; }
+    
+    /* 5cm 정도의 확실한 공백을 위한 CSS */
+    .hint-spacer { margin-top: 150px; }
+    .hint-box {
+        padding: 20px;
+        background-color: #fdfdfe;
+        border: 1px dashed #cccccc;
+        border-radius: 10px;
+        text-align: center;
+        color: #666666;
+    }
+    
     .made-by-footer { text-align: center; font-size: 0.85rem; color: #aaaaaa; margin-top: 60px; padding-top: 20px; border-top: 1px solid #eeeeee; }
     </style>
     """, unsafe_allow_html=True)
@@ -130,10 +142,7 @@ else:
     feedback_area = st.empty()
     
     if not st.session_state.retry_chance:
-        # 첫 번째 틀렸을 때 나타나는 힌트 영역
-        hint_text = current_quiz.get('hint', '힌트가 없습니다.')
-        feedback_area.warning(f"❌ 틀렸습니다! **힌트:** {hint_text}")
-        
+        feedback_area.error("❌ 틀렸습니다! 마지막 기회입니다.")
     else:
         st.markdown("**이 차량의 정확한 등급명은?**")
     
@@ -144,6 +153,7 @@ else:
             if st.button(opt, use_container_width=True, key=f"btn_{current_idx}_{i}_{st.session_state.retry_chance}"):
                 user_choice = opt
 
+    # 정답 판정
     if user_choice:
         if user_choice == correct_answer:
             feedback_area.success("정답입니다! 🎉")
@@ -153,10 +163,8 @@ else:
             time.sleep(1)
         else:
             if st.session_state.retry_chance:
-                # 첫 번째 오답: 힌트 보여주기 위해 상태만 변경
                 st.session_state.retry_chance = False
             else:
-                # 두 번째 오답: 정답 공개 후 다음 문제로
                 feedback_area.error(f"아쉬워요! 정답은 **[{correct_answer}]** 입니다.")
                 time.sleep(2.5)
                 st.session_state.retry_chance = True
@@ -164,3 +172,14 @@ else:
 
         if st.session_state.current_step >= total_q: st.session_state.is_finished = True
         st.rerun()
+
+    # 힌트 영역 (최하단에 5cm 공백 후 배치)
+    if not st.session_state.retry_chance:
+        hint_text = current_quiz.get('hint', '힌트가 없습니다.')
+        st.markdown(f"""
+            <div class="hint-spacer"></div>
+            <div class="hint-box">
+                <small style="color:#999;">HINT</small><br>
+                <b>{hint_text}</b>
+            </div>
+        """, unsafe_allow_html=True)
