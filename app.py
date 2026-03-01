@@ -176,9 +176,9 @@ else:
                 if 'hint' in current_quiz and current_quiz['hint']:
                     st.info(f"💡 힌트: {current_quiz['hint']}")
                 st.session_state.retry_chance = False
-                time.sleep(1.2)
+                time.sleep(2.5)
             else:
-                feedback_area.error(f"아쉬워요! 정답은 [{correct_answer}] 입니다.")
+                feedback_area.error(f"정답은 [{correct_answer}] 입니다.")
                 
                 time.sleep(2.5)
                 st.session_state.retry_chance = True 
