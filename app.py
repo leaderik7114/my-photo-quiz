@@ -5,26 +5,26 @@ import os
 import time
 import difflib
 
-# 1. 페이지 설정 및 스타일 정의
-st.set_page_config(page_title="엔카 사진퀴즈 (고난도)", layout="centered", page_icon="🚗")
+# 1. 페이지 설정 및 커스텀 CSS
+st.set_page_config(page_title="엔카 사진퀴즈 (지능형 오답)", layout="centered", page_icon="🚗")
 
 st.markdown("""
     <style>
-    .main-title { font-size: 2.5rem; font-weight: 800; text-align: center; margin-bottom: 0.5rem; color: #FF2E2E; }
-    .sub-title { font-size: 1.1rem; text-align: center; color: #666; margin-bottom: 2rem; }
+    .main-title { font-size: 2.5rem; font-weight: 800; text-align: center; margin-bottom: 0.5rem; color: #E01010; }
+    .sub-title { font-size: 1.1rem; text-align: center; color: #555; margin-bottom: 2rem; }
     .block-container { max-width: 700px; padding-top: 2rem; }
     .stButton > button { 
-        height: 4rem; 
-        font-size: 1.1rem !important; 
+        height: 3.8rem; 
+        font-size: 1.05rem !important; 
         font-weight: 600;
-        border-radius: 10px;
-        margin-bottom: 5px;
+        border-radius: 12px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
     }
     .made-by-center { text-align: center; font-size: 0.8rem; color: #bbbbbb; margin-top: 50px; }
     </style>
     """, unsafe_allow_html=True)
 
-# 2. 데이터 로드 및 정교한 유사 보기 생성 로직
+# 2. 데이터 로드 및 지능형 오답 생성 함수
 @st.cache_data
 def load_data():
     try:
@@ -32,47 +32,70 @@ def load_data():
         if 'filename' in df.columns:
             df = df[~df['filename'].str.contains('후\\.', na=False)]
         if 'hint' not in df.columns:
-            df['hint'] = "힌트가 없습니다."
+            df['hint'] = "힌트가 제공되지 않는 문제입니다."
         return df.fillna("")
     except FileNotFoundError:
         st.error("데이터 파일(answers.csv)을 찾을 수 없습니다.")
         return pd.DataFrame(columns=['filename', 'answer', 'hint'])
 
-def get_advanced_similar_options(current_answer, all_answers):
-    """단어 포함 여부와 글자 일치도를 계산해 가장 유사한 오답 3개를 추출합니다."""
+def get_intelligent_options(current_answer, all_answers):
+    """실제 유사 데이터와 가짜 오답을 섞어 최적의 4지선다를 구성합니다."""
     current_answer = str(current_answer).strip()
     # 자기 자신 제외한 유니크 목록
     others = list(set([str(ans).strip() for ans in all_answers if str(ans).strip() != current_answer]))
     
+    # [Step 1] 실제 데이터에서 유사도 점수 계산
     scored_candidates = []
     for candidate in others:
         score = 0
-        # 점수 알고리즘 1: 핵심 단어 포함 여부 (가장 강력함)
         if current_answer in candidate or candidate in current_answer:
             score += 20
-        
-        # 점수 알고리즘 2: 공통 글자 집합 크기 (글자 구성의 유사성)
         common_chars = set(current_answer) & set(candidate)
         score += len(common_chars) * 2
-        
-        # 점수 알고리즘 3: 전체 문구 유사도 비율
         ratio = difflib.SequenceMatcher(None, current_answer, candidate).ratio()
         score += ratio * 10
-        
         scored_candidates.append((candidate, score))
     
-    # 점수 높은 순으로 정렬
     scored_candidates.sort(key=lambda x: x[1], reverse=True)
     
-    # 상위 10개 중 3개를 무작위로 뽑아 '너무 뻔하지 않은' 유사 보기 구성
-    pool_size = min(len(scored_candidates), 10)
-    top_pool = [c[0] for c in scored_candidates[:pool_size]]
-    
-    # 후보가 부족할 경우 대비
+    # 점수가 높은 실제 데이터 최대 3개 확보
+    top_pool = [c[0] for c in scored_candidates if c[1] > 8][:3]
+
+    # [Step 2] 데이터가 부족하거나 난이도를 높이기 위해 가짜 오답 생성
     if len(top_pool) < 3:
-        top_pool += random.sample(others, min(len(others), 3 - len(top_pool)))
-    
-    final_options = random.sample(top_pool, 3) + [current_answer]
+        prefixes = ["더 뉴 ", "올 뉴 ", "뉴 ", "그랜드 "]
+        suffixes = [" 2세대", " 3세대", " 4세대", " PE", " 하이브리드", " 마스터", " 프레스티지", " 노블레스"]
+        
+        # 정답에서 핵심 단어 추출 (앞 2글자 혹은 공백 기준 첫 단어)
+        base_word = current_answer.split(' ')[0]
+        
+        generated = set()
+        attempts = 0
+        while len(top_pool) + len(generated) < 3 and attempts < 20:
+            attempts += 1
+            mode = random.choice(["pre", "suf", "mix"])
+            
+            if mode == "pre":
+                # 수식어 + 본래이름 (중복수식어 제거)
+                clean_name = current_answer.replace("더 뉴 ", "").replace("올 뉴 ", "")
+                fake = random.choice(prefixes) + clean_name
+            elif mode == "suf":
+                fake = base_word + random.choice(suffixes)
+            else:
+                # 랜덤 조합
+                fake = random.choice(prefixes) + base_word + random.choice(suffixes)
+            
+            if fake != current_answer and fake not in top_pool:
+                generated.add(fake)
+        
+        top_pool += list(generated)
+
+    # 최종 4개 (만약 데이터가 아예 없으면 기본 랜덤이라도 추가)
+    while len(top_pool) < 3:
+        r_opt = random.choice(others)
+        if r_opt not in top_pool: top_pool.append(r_opt)
+
+    final_options = top_pool[:3] + [current_answer]
     random.shuffle(final_options)
     return final_options
 
@@ -90,11 +113,11 @@ if not st.session_state.game_started:
     if os.path.exists("images/logo.png"):
         st.image("images/logo.png", use_container_width=True)
     
-    st.markdown('<p class="main-title">🚗 외관 사진 퀴즈</p>', unsafe_allow_html=True)
-    st.markdown('<p class="sub-title">사진을 보고 정확한 모델 등급을 선택하세요!</p>', unsafe_allow_html=True)
+    st.markdown('<p class="main-title">🚗 엔카 사진 퀴즈</p>', unsafe_allow_html=True)
+    st.markdown('<p class="sub-title">실제 데이터와 가짜 오답이 섞여있습니다. 주의하세요!</p>', unsafe_allow_html=True)
     
     st.write("---")
-    quiz_count = st.select_slider("문제 수 선택", options=[5, 10, 20, "전체"], value=10)
+    quiz_count = st.select_slider("풀어볼 문제 수", options=[5, 10, 20, "전체"], value=10)
     
     if st.button("🚀 게임 시작하기", use_container_width=True, type="primary"):
         all_indices = list(range(len(data)))
@@ -106,18 +129,20 @@ if not st.session_state.game_started:
         st.session_state.score = 0
         st.session_state.game_started = True
         st.session_state.is_finished = False
-        # 이전 보기 기록 삭제
+        # 이전 캐시 삭제
         for k in list(st.session_state.keys()):
             if k.startswith("opts_"): del st.session_state[k]
         st.rerun()
 
+    st.markdown('<div class="made-by-center">made by 진단광고제작팀 최인규</div>', unsafe_allow_html=True)
+
 # --- [화면 2] 결과 페이지 ---
 elif st.session_state.is_finished:
     st.balloons()
-    st.markdown(f"<h2 style='text-align:center;'>🏁 수고하셨습니다!</h2>", unsafe_allow_html=True)
-    st.markdown(f"<h3 style='text-align:center;'>최종 점수: {st.session_state.score} / {len(st.session_state.quiz_indices)}</h3>", unsafe_allow_html=True)
+    st.markdown(f"<h2 style='text-align:center;'>🏁 테스트 결과</h2>", unsafe_allow_html=True)
+    st.markdown(f"<div style='background-color:#f0f2f6; padding:20px; border-radius:15px; text-align:center;'><h3>최종 점수: <b>{st.session_state.score}</b> / {len(st.session_state.quiz_indices)}</h3></div>", unsafe_allow_html=True)
     
-    if st.button("다시 도전하기", use_container_width=True):
+    if st.button("처음으로 돌아가기", use_container_width=True):
         st.session_state.game_started = False
         st.rerun()
 
@@ -128,18 +153,18 @@ else:
     current_quiz = data.iloc[current_idx]
     correct_answer = str(current_quiz['answer']).strip()
 
-    # 상단 헤더 및 진행도
-    col1, col2 = st.columns([4, 1])
-    with col1:
+    # 상단 레이아웃
+    col_l, col_r = st.columns([5, 1])
+    with col_l:
         st.markdown(f"#### 📝 문제 {st.session_state.current_step + 1} / {total_q}")
-    with col2:
-        if st.button("🏠 홈", key="home_btn"):
+    with col_r:
+        if st.button("🏠"):
             st.session_state.game_started = False
             st.rerun()
             
     st.progress((st.session_state.current_step + 1) / total_q)
 
-    # 이미지 영역
+    # 사진 출력
     base_file = current_quiz['filename']
     name, ext = os.path.splitext(base_file)
     front_path = os.path.join("images", base_file)
@@ -148,41 +173,43 @@ else:
     img_col1, img_col2 = st.columns(2)
     with img_col1:
         if os.path.exists(front_path):
-            st.image(front_path, caption="앞면", use_container_width=True)
+            st.image(front_path, caption="앞면 (Front)", use_container_width=True)
     with img_col2:
         if os.path.exists(back_path):
-            st.image(back_path, caption="뒷면", use_container_width=True)
+            st.image(back_path, caption="뒷면 (Rear)", use_container_width=True)
 
     st.write("---")
 
-    # 보기 생성 및 고정
+    # 보기 로직 (세션 저장)
     option_key = f"opts_{current_idx}"
     if option_key not in st.session_state:
-        st.session_state[option_key] = get_advanced_similar_options(correct_answer, data['answer'])
+        st.session_state[option_key] = get_intelligent_options(correct_answer, data['answer'])
     
     options = st.session_state[option_key]
 
     # 객관식 버튼 UI
-    st.markdown("**이 차량의 정확한 등급명은?**")
-    feedback_area = st.empty()
-    cols = st.columns(2)
+    st.markdown("**이 차량의 정확한 명칭을 고르세요:**")
+    feedback_placeholder = st.empty()
+    
+    # 2x2 배치
+    btn_cols = st.columns(2)
     user_choice = None
 
     for i, opt in enumerate(options):
-        with cols[i % 2]:
+        with btn_cols[i % 2]:
             if st.button(opt, use_container_width=True, key=f"btn_{current_idx}_{i}"):
                 user_choice = opt
 
-    # 정답 체크 로직
+    # 결과 판정
     if user_choice:
         if user_choice == correct_answer:
-            feedback_area.success("정답입니다! 🎉")
+            feedback_placeholder.success("정답입니다! 탁월한 눈썰미시네요! 🎉")
             st.session_state.score += 1
-            time.sleep(1)
+            time.sleep(1.2)
         else:
-            feedback_area.error(f"오답입니다! ❌ 정답은 [{correct_answer}]")
+            feedback_placeholder.error(f"오답입니다! ❌ 정답은 [{correct_answer}]")
             st.info(f"💡 힌트: {current_quiz['hint']}")
-            time.sleep(2.5)
+            time.sleep(3.0)
 
         st.session_state.current_step += 1
         if st.session_state.current_step >= total_q:
