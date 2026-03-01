@@ -76,18 +76,20 @@ data = load_data()
 # 3. 세션 상태 관리
 if 'game_started' not in st.session_state: st.session_state.game_started = False
 if 'is_finished' not in st.session_state: st.session_state.is_finished = False
-if 'retry_chance' not in st.session_state: st.session_state.retry_chance = True # 찬스 유무
+if 'retry_chance' not in st.session_state: st.session_state.retry_chance = True 
 
 # --- [CASE 1] 시작 화면 ---
 if not st.session_state.game_started:
-    st.markdown('<p class="main-title">🚗 엔카 사진 퀴즈</p>', unsafe_allow_html=True)
-    st.markdown('<p class="sub-title">틀려도 한 번 더! 찬스를 활용해 만점에 도전하세요.</p>', unsafe_allow_html=True)
-    
+     
     if os.path.exists("images/logo.png"):
         st.image("images/logo.png", use_container_width=True)
+
+    st.markdown('<p class="main-title">🚗 엔카 사진 퀴즈</p>', unsafe_allow_html=True)
+    st.markdown('<p class="sub-title">사진을 보고 정답을 맞춰보세요.</p>', unsafe_allow_html=True)
+   
     
     st.write("---")
-    quiz_count = st.select_slider("문제 수 선택", options=[5, 10, 20, "전체"], value=10)
+    quiz_count = st.select_slider("문제 수 선택", options=[10, 20, 30, 50, "전체"], value=10)
     
     if st.button("🚀 게임 시작하기", use_container_width=True, type="primary"):
         all_indices = list(range(len(data)))
@@ -98,7 +100,7 @@ if not st.session_state.game_started:
         st.session_state.score = 0
         st.session_state.game_started = True
         st.session_state.is_finished = False
-        st.session_state.retry_chance = True # 첫 번째 기회 상태로 시작
+        st.session_state.retry_chance = True 
         for k in list(st.session_state.keys()):
             if k.startswith("opts_"): del st.session_state[k]
         st.rerun()
@@ -121,7 +123,6 @@ else:
     current_quiz = data.iloc[current_idx]
     correct_answer = str(current_quiz['answer']).strip()
 
-    # 상단바
     col_l, col_r = st.columns([5, 1])
     with col_l: st.markdown(f"#### 📝 문제 {st.session_state.current_step + 1} / {total_q}")
     with col_r: 
@@ -130,7 +131,6 @@ else:
             st.rerun()
     st.progress((st.session_state.current_step + 1) / total_q)
 
-    # 이미지 출력
     base_file = current_quiz['filename']
     name, ext = os.path.splitext(base_file)
     front_path, back_path = os.path.join("images", base_file), os.path.join("images", f"{name}후{ext}")
@@ -143,14 +143,12 @@ else:
 
     st.write("---")
 
-    # 보기 생성 및 고정
     option_key = f"opts_{current_idx}"
     if option_key not in st.session_state:
         st.session_state[option_key] = get_intelligent_options(correct_answer, data['answer'])
     
     options = st.session_state[option_key]
     
-    # 찬스 안내 문구
     if not st.session_state.retry_chance:
         st.warning("⚠️ 마지막 기회입니다! 신중하게 선택하세요.")
     else:
@@ -165,27 +163,26 @@ else:
             if st.button(opt, use_container_width=True, key=f"btn_{current_idx}_{i}_{st.session_state.retry_chance}"):
                 user_choice = opt
 
-    # 정답 판정 로직
     if user_choice:
         if user_choice == correct_answer:
             feedback_area.success("정답입니다! 🎉")
             st.session_state.score += 1
-            time.sleep(1)
-            st.session_state.retry_chance = True # 다음 문제를 위해 초기화
+            st.session_state.retry_chance = True 
             st.session_state.current_step += 1
+            time.sleep(1)
         else:
             if st.session_state.retry_chance:
-                # 첫 번째 틀림: 찬스 발동
-                feedback_area.warning("틀렸습니다! 💡 아직 한 번의 기회가 더 있어요.")
+                feedback_area.warning("틀렸습니다!")
                 st.session_state.retry_chance = False
-                time.sleep(1.5)
+                time.sleep(1.2)
             else:
-                # 두 번째 틀림: 정답 공개 후 이동
                 feedback_area.error(f"아쉬워요! 정답은 [{correct_answer}] 입니다.")
-                st.info(f"💡 힌트: {current_quiz.get('hint', '힌트 없음')}")
-                time.sleep(3.0)
-                st.session_state.retry_chance = True # 초기화
-                st.session_step = st.session_state.current_step += 1
+                if 'hint' in current_quiz and current_quiz['hint']:
+                    st.info(f"💡 힌트: {current_quiz['hint']}")
+                time.sleep(2.5)
+                st.session_state.retry_chance = True 
+                st.session_state.current_step += 1
 
-        if st.session_state.current_step >= total_q: st.session_state.is_finished = True
+        if st.session_state.current_step >= total_q: 
+            st.session_state.is_finished = True
         st.rerun()
