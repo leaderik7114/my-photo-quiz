@@ -107,14 +107,16 @@ if 'is_finished' not in st.session_state: st.session_state.is_finished = False
 
 # --- [CASE 1] 시작 화면 ---
 if not st.session_state.game_started:
-    st.markdown('<p class="main-title">🚗 엔카 사진 퀴즈</p>', unsafe_allow_html=True)
-    st.markdown('<p class="sub-title">사진을 보고 정확한 명칭을 맞혀보세요!</p>', unsafe_allow_html=True)
     
     if os.path.exists("images/logo.png"):
         st.image("images/logo.png", use_container_width=True)
+
+        st.markdown('<p class="main-title">🚗 엔카 사진 퀴즈</p>', unsafe_allow_html=True)
+    st.markdown('<p class="sub-title">사진을 보고 정확한 명칭을 맞혀보세요!</p>', unsafe_allow_html=True)
+    
     
     st.write("---")
-    quiz_count = st.select_slider("풀어볼 문제 수", options=[5, 10, 20, "전체"], value=10)
+    quiz_count = st.select_slider("풀어볼 문제 수", options=[5, 10, 20, 30, 50, "전체"], value=10)
     
     if st.button("🚀 게임 시작하기", use_container_width=True, type="primary"):
         all_indices = list(range(len(data)))
