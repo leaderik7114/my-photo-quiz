@@ -142,7 +142,7 @@ else:
     feedback_area = st.empty()
     
     if not st.session_state.retry_chance:
-        feedback_area.error("❌ 틀렸습니다! 마지막 기회입니다.")
+        feedback_area.error("❌ 틀렸습니다!")
     else:
         st.markdown("**이 차량의 정확한 등급명은?**")
     
