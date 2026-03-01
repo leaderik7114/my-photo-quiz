@@ -68,7 +68,7 @@ if not st.session_state.game_started:
     if os.path.exists("images/logo.png"): st.image("images/logo.png", use_container_width=True)
     st.markdown('<p class="main-title">🚗 엔카 사진 퀴즈</p>', unsafe_allow_html=True)
     st.markdown('<p class="sub-title">전면 후면의 사진을 보고 정답을 맞춰보세요!</p>', unsafe_allow_html=True)
-    
+
     st.write("---")
     quiz_count = st.select_slider("문제 수", options=[10, 20, 30, 50, "전체"], value=10)
     if st.button("🚀 게임 시작하기", use_container_width=True, type="primary"):
@@ -132,7 +132,8 @@ else:
     if not st.session_state.retry_chance:
         # 첫 번째 틀렸을 때 나타나는 힌트 영역
         hint_text = current_quiz.get('hint', '힌트가 없습니다.')
-        feedback_area.warning(f"❌ 틀렸습니다! **마지막 기회**입니다.\n\n💡 **힌트:** {hint_text}")
+        feedback_area.warning(f"❌ 틀렸습니다!")
+         feedback_area.warning(f"**힌트:** {hint_text}")
     else:
         st.markdown("**이 차량의 정확한 등급명은?**")
     
