@@ -158,7 +158,7 @@ else:
     with col_l:
         st.markdown(f"#### 📝 문제 {st.session_state.current_step + 1} / {total_q}")
     with col_r:
-        if st.button("메인으로🏠"):
+        if st.button("메인🏠"):
             st.session_state.game_started = False
             st.rerun()
             
