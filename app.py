@@ -132,8 +132,8 @@ else:
     if not st.session_state.retry_chance:
         # 첫 번째 틀렸을 때 나타나는 힌트 영역
         hint_text = current_quiz.get('hint', '힌트가 없습니다.')
-        feedback_area.warning(f"❌ 틀렸습니다!")
-        feedback_area.warning(f"**힌트:** {hint_text}")
+        feedback_area.warning(f"❌ 틀렸습니다! **힌트:** {hint_text}")
+        
     else:
         st.markdown("**이 차량의 정확한 등급명은?**")
     
