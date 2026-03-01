@@ -112,7 +112,7 @@ if not st.session_state.game_started:
         st.image("images/logo.png", use_container_width=True)
 
         st.markdown('<p class="main-title">🚗 엔카 사진 퀴즈</p>', unsafe_allow_html=True)
-    st.markdown('<p class="sub-title">사진을 보고 정확한 명칭을 맞혀보세요!</p>', unsafe_allow_html=True)
+        st.markdown('<p class="sub-title">사진을 보고 정확한 명칭을 맞혀보세요!</p>', unsafe_allow_html=True)
     
     
     st.write("---")
@@ -131,6 +131,7 @@ if not st.session_state.game_started:
             if k.startswith("opts_"): del st.session_state[k]
         st.rerun()
 
+        st.markdown('<div class="made-by-center">made by 진단광고제작팀 최인규</div>', unsafe_allow_html=True)
 # --- [CASE 2] 결과 화면 ---
 elif st.session_state.is_finished:
     st.balloons()
