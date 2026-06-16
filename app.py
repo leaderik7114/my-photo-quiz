@@ -259,8 +259,12 @@ else:
     c1, c2 = st.columns(2)
     with c1: 
         if os.path.exists(front_p): st.image(front_p, caption="앞면", use_container_width=True)
+        else:
+            st.warning(f"⚠️ 전면 이미지 누락\n({base_file})") # 엑박 대신 경고창
     with c2: 
         if os.path.exists(back_p): st.image(back_p, caption="뒷면", use_container_width=True)
+        else:
+            st.warning(f"⚠️ 후면 이미지 누락\n({name}후{ext})")
 
     st.write("---")
 
