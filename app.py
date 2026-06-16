@@ -51,9 +51,10 @@ def load_data():
 
 def get_intelligent_options(current_answer, all_answers):
     current_answer = str(current_answer).strip()
-    # 전체 정답 리스트에서 공백 제거 및 중복 제거 (현재 정답은 제외)
+    # 전체 정답 리스트에서 현재 정답을 제외하고 중복 제거
     others = list(set([str(ans).strip() for ans in all_answers if str(ans).strip() != current_answer]))
     
+    # 1. 유사도 점수 계산 로직 (기존 로직 유지)
     scored_candidates = []
     for candidate in others:
         score = 0
@@ -64,51 +65,62 @@ def get_intelligent_options(current_answer, all_answers):
         score += ratio * 10
         scored_candidates.append((candidate, score))
         
+    # 점수가 높은 순(가장 비슷한 순)으로 정렬
     scored_candidates.sort(key=lambda x: x[1], reverse=True)
     
-    # 8점 넘는 유사 후보군 중 상위 3개 추출
-    top_pool = [c[0] for c in scored_candidates if c[1] > 8][:3]
+    # 점수 기준(8점 초과)을 만족하는 '진짜 유사한' 후보들만 필터링
+    similar_pool = [c[0] for c in scored_candidates if c[1] > 8]
     
-    # [수정/보완] 만약 유사 후보가 부족하다면 글자를 조합해서 채우기
+    # 오답 후보를 저장할 리스트
+    top_pool = []
+    
+    # 우선 데이터셋에 존재하는 진짜 유사한 이름들로 먼저 채우기 (최대 3개)
+    for cand in similar_pool:
+        if cand not in top_pool:
+            top_pool.append(cand)
+        if len(top_pool) == 3:
+            break
+            
+    # 2. [핵심 수정] 만약 실제 데이터셋에 유사한 명칭이 부족해서 3개가 안 채워졌다면?
+    # 다른 뚱딴지같은 차종을 가져오는 게 아니라, 현재 정답 명칭에 수식어를 조합해서 무조건 유사 명칭을 만들어냅니다.
     if len(top_pool) < 3:
-        prefixes, suffixes = ["더 뉴 ", "올 뉴 ", "뉴 "], [" 2세대", " 3세대", " 4세대", " PE", " 하이브리드"]
+        prefixes = ["더 뉴 ", "올 뉴 ", "뉴 ", "페이스리프트 "]
+        suffixes = [" 2세대", " 3세대", " 4세대", " PE", " 하이브리드", " 시그니처", " 인스퍼레이션"]
+        
+        # 앞 글자(예: '그랜저', '쏘렌토')를 기준으로 삼음
         base_word = current_answer.split(' ')[0]
-        generated = set()
         
-        # 무한 루프 방지를 위해 최대 20번만 조합 시도
-        attempt = 0
-        while len(top_pool) + len(generated) < 3 and attempt < 20:
-            attempt += 1
-            fake = random.choice(prefixes) + base_word if random.random() > 0.5 else base_word + random.choice(suffixes)
-            if fake != current_answer and fake not in top_pool: 
-                generated.add(fake)
-        top_pool += list(generated)
-        
-    # 🚨 [핵심 추가] 최종 안전장치: 위 로직을 다 거쳤는데도 보기(top_pool)가 3개가 안 된다면?
-    # 데이터셋에 있는 다른 차량 이름(others)에서 무작위로 꺼내서 무조건 3개를 채웁니다.
-    if len(top_pool) < 3:
-        random.shuffle(others)
-        for cand in others:
-            if cand not in top_pool and cand != current_answer:
-                top_pool.append(cand)
-                if len(top_pool) == 3:
-                    break
-
-    # 오답 후보 3개 + 정답 1개 = 총 4개 확실히 보장
-    final_options = top_pool[:3] + [current_answer]
-    
-    # 만약에라도 최종 리스트에 중복이 있어서 4개가 안 채워졌을 경우를 대비한 2차 방어선
-    final_options = list(set(final_options))
-    while len(final_options) < 4:
-        random.shuffle(others)
-        for cand in others:
-            if cand not in final_options:
-                final_options.append(cand)
+        # 중복을 피하기 위해 시도 횟수를 넉넉히(최대 100번) 잡고 조합 실행
+        for _ in range(100):
+            if len(top_pool) == 3:
                 break
                 
+            # 무작위로 앞수식어 또는 뒷수식어 붙이기
+            if random.random() > 0.5:
+                fake = random.choice(prefixes) + current_answer
+            else:
+                fake = current_answer + random.choice(suffixes)
+                
+            # 띄어쓰기 서식을 깔끔하게 정리하고, 기존 보기나 정답과 중복되지 않는지 검증
+            fake = " ".join(fake.split()) 
+            if fake != current_answer and fake not in top_pool:
+                top_pool.append(fake)
+
+    # 3. 만약 위 단계에서도 아주 드물게 베이스 단어 추출 등이 꼬여 3개가 안 채워졌을 때를 위한 마지막 보루
+    # 철저하게 '유사도 점수'가 가장 높았던 상위권 후보들 중에서 강제로 매꿉니다.
+    if len(top_pool) < 3:
+        for cand, score in scored_candidates:
+            if cand not in top_pool and cand != current_answer:
+                top_pool.append(cand)
+            if len(top_pool) == 3:
+                break
+
+    # 오답 후보 3개 + 정답 1개 = 총 4개 결합
+    final_options = top_pool[:3] + [current_answer]
+    
+    # 마지막으로 셔플하여 순서 섞기
     random.shuffle(final_options)
     return final_options
-
 data = load_data()
 
 # 3. 세션 상태 초기화
