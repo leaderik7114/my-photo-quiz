@@ -305,8 +305,18 @@ else:
     # ----------------------------------------------------
     else:
         feedback_area = st.empty()
+        hint_area = st.empty()  # 🌟 틀렸을 때 힌트를 즉시 띄워줄 공간 마련
+        
         if not st.session_state.retry_chance:
             feedback_area.error("❌ 틀렸습니다!")
+            # 🌟 [수정] '틀렸습니다' 문구 바로 아래에 힌트 박스 배치
+            hint_text = current_quiz.get('hint', '힌트가 없습니다.')
+            hint_area.markdown(f"""
+                <div class="hint-box" style="margin-top: 10px; margin-bottom: 20px;">
+                    <small style="color:#999;">💡 HINT</small><br>
+                    <b>{hint_text}</b>
+                </div>
+            """, unsafe_allow_html=True)
         else:
             st.markdown("**이 차량의 정확한 등급명은?**")
         
@@ -320,6 +330,7 @@ else:
         if user_choice:
             if user_choice == correct_answer:
                 feedback_area.success("정답입니다! 🎉")
+                hint_area.empty() # 정답일 때는 힌트 공간 비우기
                 st.session_state.score += 1
                 st.session_state.retry_chance = True
                 st.session_state.current_step += 1
@@ -329,20 +340,11 @@ else:
                     st.session_state.retry_chance = False
                 else:
                     feedback_area.error(f"아쉬워요! 정답은 **[{correct_answer}]** 입니다.")
+                    hint_area.empty()
                     time.sleep(2.5)
                     st.session_state.retry_chance = True
                     st.session_state.current_step += 1
 
+            if st.session_step >= total_q: st.session_state.is_finished = True  # 오타 방지용 (기존 코드 흐름 유지)
             if st.session_state.current_step >= total_q: st.session_state.is_finished = True
             st.rerun()
-
-        # 기본 모드일 때만 하단에 5cm 공백 후 힌트 출력
-        if not st.session_state.retry_chance:
-            hint_text = current_quiz.get('hint', '힌트가 없습니다.')
-            st.markdown(f"""
-                <div class="hint-spacer"></div>
-                <div class="hint-box">
-                    <small style="color:#999;">HINT</small><br>
-                    <b>{hint_text}</b>
-                </div>
-            """, unsafe_allow_html=True)
