@@ -84,8 +84,8 @@ def get_intelligent_options(current_answer, all_answers):
     # 2. [핵심 수정] 만약 실제 데이터셋에 유사한 명칭이 부족해서 3개가 안 채워졌다면?
     # 다른 뚱딴지같은 차종을 가져오는 게 아니라, 현재 정답 명칭에 수식어를 조합해서 무조건 유사 명칭을 만들어냅니다.
     if len(top_pool) < 3:
-        prefixes = ["더 뉴 ", "올 뉴 ", "뉴 ", "페이스리프트 "]
-        suffixes = [" 2세대", " 3세대", " 4세대", " PE", " 하이브리드", " 시그니처", " 인스퍼레이션"]
+        prefixes = ["더 뉴 ", "올 뉴 "]
+        suffixes = [" -2세대", " -3세대", " -4세대"]
         
         # 앞 글자(예: '그랜저', '쏘렌토')를 기준으로 삼음
         base_word = current_answer.split(' ')[0]
