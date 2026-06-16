@@ -283,26 +283,26 @@ else:
 
         st.write("")
     # 버튼 순서를 바꿔서 모바일에서 [다음]이 무조건 먼저 위로 올라오게 세팅
-    nav_cols = st.columns([1, 2, 1])
-    
-    with nav_cols[0]:
-        if step < total_q - 1:
-            if st.button("다음 문항 ➡️", use_container_width=True, type="primary"): # 주로 쓰는 버튼이라 강조색 부여
-                st.session_state.current_step += 1
-                st.rerun()
-        else:
-            if st.button("🏁 최종 제출", use_container_width=True, type="primary"):
-                st.session_state.is_finished = True
-                st.rerun()
-                
-    with nav_cols[1]:
-        st.markdown(f"<p style='text-align: center; line-height: 3rem; color: #666; font-size: 1.1rem;'><b>{step + 1} / {total_q} 문항</b></p>", unsafe_allow_html=True)
+        nav_cols = st.columns([1, 2, 1])
         
-    with nav_cols[2]:
-        if step > 0:
-            if st.button("⬅️ 이전", use_container_width=True):
-                st.session_state.current_step -= 1
-                st.rerun()
+        with nav_cols[0]:
+            if step < total_q - 1:
+                if st.button("다음 문항 ➡️", use_container_width=True, type="primary"): # 주로 쓰는 버튼이라 강조색 부여
+                    st.session_state.current_step += 1
+                    st.rerun()
+            else:
+                if st.button("🏁 최종 제출", use_container_width=True, type="primary"):
+                    st.session_state.is_finished = True
+                    st.rerun()
+                    
+        with nav_cols[1]:
+            st.markdown(f"<p style='text-align: center; line-height: 3rem; color: #666; font-size: 1.1rem;'><b>{step + 1} / {total_q} 문항</b></p>", unsafe_allow_html=True)
+            
+        with nav_cols[2]:
+            if step > 0:
+                if st.button("⬅️ 이전", use_container_width=True):
+                    st.session_state.current_step -= 1
+                    st.rerun()
 
     # ----------------------------------------------------
     #  [분기점 2] 기본 연습 모드 레이아웃 (기존 사각형 버튼 방식)
