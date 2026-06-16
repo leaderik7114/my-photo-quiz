@@ -247,7 +247,7 @@ else:
     col_l, col_r = st.columns([5, 1])
     with col_l: st.markdown(f"#### 📝 문제 {step + 1} / {total_q} ({st.session_state.game_mode})")
     with col_r: 
-        if st.button("MAIN 돌아가기"): 
+        if st.button("홈으로"): 
             st.session_state.game_started = False
             st.rerun()
     st.progress((step + 1) / total_q)
