@@ -281,7 +281,7 @@ else:
         user_choice = st.radio("보기 선택", options, index=default_index, label_visibility="collapsed", key=f"radio_{step}_{current_idx}")
         st.session_state.user_answers[step] = user_choice # 실시간 저장
 
-        st.write("")
+    st.write("")
     # 버튼 순서를 바꿔서 모바일에서 [다음]이 무조건 먼저 위로 올라오게 세팅
     nav_cols = st.columns([1, 2, 1])
     
