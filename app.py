@@ -33,6 +33,13 @@ st.markdown("""
         margin-bottom: 15px;
     }
     
+    div[data-testid="stRadio"] label {
+        padding-top: 6px !important;
+        padding-bottom: 6px !important;
+        margin-bottom: 4px !important;
+    }
+
+
     .made-by-footer { text-align: center; font-size: 0.85rem; color: #aaaaaa; margin-top: 60px; padding-top: 20px; border-top: 1px solid #eeeeee; }
     </style>
     """, unsafe_allow_html=True)
