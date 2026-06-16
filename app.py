@@ -345,6 +345,5 @@ else:
                     st.session_state.retry_chance = True
                     st.session_state.current_step += 1
 
-            if st.session_state.current_step >= total_q: 
-    st.session_state.is_finished = True
-st.rerun()
+            if st.session_state.current_step >= total_q: st.session_state.is_finished = True
+            st.rerun()
