@@ -51,7 +51,9 @@ def load_data():
 
 def get_intelligent_options(current_answer, all_answers):
     current_answer = str(current_answer).strip()
+    # 전체 정답 리스트에서 공백 제거 및 중복 제거 (현재 정답은 제외)
     others = list(set([str(ans).strip() for ans in all_answers if str(ans).strip() != current_answer]))
+    
     scored_candidates = []
     for candidate in others:
         score = 0
@@ -61,17 +63,49 @@ def get_intelligent_options(current_answer, all_answers):
         ratio = difflib.SequenceMatcher(None, current_answer, candidate).ratio()
         score += ratio * 10
         scored_candidates.append((candidate, score))
+        
     scored_candidates.sort(key=lambda x: x[1], reverse=True)
+    
+    # 8점 넘는 유사 후보군 중 상위 3개 추출
     top_pool = [c[0] for c in scored_candidates if c[1] > 8][:3]
+    
+    # [수정/보완] 만약 유사 후보가 부족하다면 글자를 조합해서 채우기
     if len(top_pool) < 3:
         prefixes, suffixes = ["더 뉴 ", "올 뉴 ", "뉴 "], [" 2세대", " 3세대", " 4세대", " PE", " 하이브리드"]
         base_word = current_answer.split(' ')[0]
         generated = set()
-        while len(top_pool) + len(generated) < 3:
+        
+        # 무한 루프 방지를 위해 최대 20번만 조합 시도
+        attempt = 0
+        while len(top_pool) + len(generated) < 3 and attempt < 20:
+            attempt += 1
             fake = random.choice(prefixes) + base_word if random.random() > 0.5 else base_word + random.choice(suffixes)
-            if fake != current_answer: generated.add(fake)
-            top_pool += list(generated)
+            if fake != current_answer and fake not in top_pool: 
+                generated.add(fake)
+        top_pool += list(generated)
+        
+    # 🚨 [핵심 추가] 최종 안전장치: 위 로직을 다 거쳤는데도 보기(top_pool)가 3개가 안 된다면?
+    # 데이터셋에 있는 다른 차량 이름(others)에서 무작위로 꺼내서 무조건 3개를 채웁니다.
+    if len(top_pool) < 3:
+        random.shuffle(others)
+        for cand in others:
+            if cand not in top_pool and cand != current_answer:
+                top_pool.append(cand)
+                if len(top_pool) == 3:
+                    break
+
+    # 오답 후보 3개 + 정답 1개 = 총 4개 확실히 보장
     final_options = top_pool[:3] + [current_answer]
+    
+    # 만약에라도 최종 리스트에 중복이 있어서 4개가 안 채워졌을 경우를 대비한 2차 방어선
+    final_options = list(set(final_options))
+    while len(final_options) < 4:
+        random.shuffle(others)
+        for cand in others:
+            if cand not in final_options:
+                final_options.append(cand)
+                break
+                
     random.shuffle(final_options)
     return final_options
 
