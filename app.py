@@ -155,31 +155,51 @@ if not st.session_state.game_started:
             st.markdown(
                 """
                 <style>
-                /* 라디오 버튼의 세로 배열을 깔끔하게 다듬고 가독성 높이기 */
-                [data-testid="stRadio"] > div {
-                    gap: 10px;
-                    padding: 5px;
-                }
-                [data-testid="stRadio"] label {
-                    font-size: 14px !important;
-                    background-color: #f8f9fa;
-                    padding: 8px 12px;
-                    border-radius: 6px;
-                    border: 1px solid #e9ecef;
-                    display: block;
+                .custom-select-box {
                     width: 100%;
+                    padding: 10px 15px;
+                    font-size: 15px;
+                    border: 1px solid #dcdcdc;
+                    border-radius: 8px;
+                    background-color: #ffffff;
+                    color: #333333;
+                    outline: none;
                     cursor: pointer;
+                    -webkit-appearance: none; /* 사파리 기본 화살표 제거 */
+                    -moz-appearance: none;
+                    appearance: none;
+                    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="%23666666" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>');
+                    background-repeat: no-repeat;
+                    background-position: right 15px center;
                 }
                 </style>
                 """,
                 unsafe_allow_html=True
             )
-            selected_quiz_idx = st.radio(
-                "📷 확인할 차량을 선택하세요", 
-                range(len(quiz_options)), 
-                format_func=lambda x: quiz_options[x],
-                label_visibility="collapsed" # 레이블 중복 방지
+            # URL 파라미터를 활용해 선택된 인덱스 추적 및 상태 유지
+            selected_value = st.query_params.get("sel_idx", "0")
+            selected_quiz_idx = int(selected_value) if selected_value.isdigit() and int(selected_value) < len(data) else 0
+            
+            st.markdown('<label style="font-size:14px; font-weight:bold; color:#333;">📷 확인할 차량을 선택하세요</label>', unsafe_allow_html=True)
+            
+            # JavaScript를 사용하여 값이 바뀔 때마다 파라미터를 갱신하여 Streamlit 리프레시
+            js_script = """
+            <select class="custom-select-box" onchange="
+                const url = new URL(window.location.href);
+                url.searchParams.set('sel_idx', this.value);
+                window.location.href = url.href;
+            ">
+            """
+            
+            # 각 문제들을 <option> 태그로 변환하고, 현재 선택된 항목에 'selected' 속성 부여
+            options_html = "".join(
+                f'<option value="{i}" {"selected" if i == selected_quiz_idx else ""}>{i+1}. {row["answer"]}</option>'
+                for i, row in data.iterrows()
             )
+            
+            # 순수 HTML 드롭다운 컴포넌트 출력 (텍스트 인풋이 없으므로 키보드가 원천 차단됨)
+            st.components.v1.html(f"{js_script}{options_html}</select>", height=50)
+            
             
             # 2. 선택된 차량의 데이터 추출 및 사진 보여주기
             target_quiz = data.iloc[selected_quiz_idx]
