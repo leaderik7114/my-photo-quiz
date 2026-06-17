@@ -146,13 +146,24 @@ if not st.session_state.game_started:
     # ---------------------------------------------------------
     # ✨ [메인 화면] 문제 리스트 확인 및 사진 보기 기능 추가
     # ---------------------------------------------------------
-    with st.expander("📋 현재 출제 가능한 문제 리스트 확인하기 (사진 보기)", expanded=False):
+    with st.expander("📋 현재 문제 리스트 (사진 보기)", expanded=False):
         st.caption(f"총 {len(data)}개의 문제가 등록되어 있습니다. 차량명을 선택하면 등록된 사진을 미리 볼 수 있습니다.")
         if not data.empty:
             # 1. 콤보박스(Selectbox) 형태로 차량 문제 리스트 나열
             # 사용자가 보기 편하게 리스트 포맷팅 (예: "1. 아반떼")
             quiz_options = [f"{i+1}. {row['answer']}" for i, row in data.iterrows()]
-            selected_quiz_idx = st.selectbox("📷 사진을 확인할 차량을 선택하세요", range(len(quiz_options)), format_func=lambda x: quiz_options[x])
+            st.markdown(
+                """
+                <style>
+                /* selectbox 내부의 입력창(input)에 마우스 클릭 및 타이핑 방지 */
+                .stSelectbox div[role="combobox"] input {
+                    pointer-events: none;
+                }
+                </style>
+                """,
+                unsafe_allow_html=True
+            )
+            selected_quiz_idx = st.selectbox("📷 확인할 차량을 선택하세요", range(len(quiz_options)), format_func=lambda x: quiz_options[x])
             
             # 2. 선택된 차량의 데이터 추출 및 사진 보여주기
             target_quiz = data.iloc[selected_quiz_idx]
