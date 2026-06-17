@@ -155,11 +155,21 @@ if not st.session_state.game_started:
             st.markdown(
                 """
                 <style>
-                /* selectbox 내부의 입력창(input)에 마우스 클릭 및 타이핑 방지 */
+                /* 입력창 자체의 텍스트 커서 및 타이핑 기능 비활성화 */
                 .stSelectbox div[role="combobox"] input {
-                    pointer-events: none;
+                    pointer-events: none !important;
+                    caret-color: transparent !important;
                 }
                 </style>
+                <script>
+                // 모바일 브라우저에서 input에 포커스되어 키보드가 올라오는 것을 방지 (readonly 강제 부여)
+                setTimeout(function() {
+                    var inputs = parent.document.querySelectorAll('.stSelectbox div[role="combobox"] input');
+                    inputs.forEach(function(input) {
+                        input.setAttribute('readonly', 'true');
+                    });
+                }, 1000);
+                </script>
                 """,
                 unsafe_allow_html=True
             )
@@ -186,7 +196,7 @@ if not st.session_state.game_started:
             
             # 힌트 정보도 함께 노출
             if 'hint' in target_quiz and target_quiz['hint']:
-                st.info(f"💡 <b>힌트 정보:</b> {target_quiz['hint']}", icon="ℹ️")
+                st.info(f"💡해당년식 {target_quiz['hint']}", icon="ℹ️")
         else:
             st.info("등록된 데이터가 없습니다.")
 
