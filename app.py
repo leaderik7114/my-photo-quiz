@@ -161,19 +161,19 @@ if not st.session_state.game_started:
 
             st.markdown(
                 """
-                <style>
-                /* 입력창 영역의 포커스와 키보드 팝업만 부드럽게 차단하여 드롭다운이 정상적으로 닫히게 합니다 */
-                .stSelectbox div[role="combobox"] input {
-                    caret-color: transparent !important; /* 커서 숨기기 */
-                    user-select: none !important;        /* 텍스트 선택 방지 */
-                    -webkit-user-select: none !important;
-                }
-                /* 모바일 가상 키보드 유발을 방지하기 위해 input 창의 타이핑 포커스 해제 */
-                .stSelectbox input:focus {
-                    outline: none !important;
-                    border: none !important;
-                }
-                </style>
+                <script>
+                // 변동 사항을 주기적으로 감지하여 selectbox 입력창을 복제/수정합니다.
+                setTimeout(function() {
+                    var inputs = parent.document.querySelectorAll('.stSelectbox div[role="combobox"] input');
+                    inputs.forEach(function(input) {
+                        // 1. 키보드가 올라오지 않도록 읽기전용 설정
+                        input.setAttribute('readonly', 'true');
+                        
+                        // 2. 모바일 브라우저에서 강제로 포커싱되어 키보드가 튀는 현상 방지
+                        input.addEventListener('focus', function() { this.blur(); });
+                    });
+                }, 500);
+                </script>
                 """,
                 unsafe_allow_html=True
             )
