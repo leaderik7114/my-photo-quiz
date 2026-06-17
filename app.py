@@ -152,11 +152,27 @@ if not st.session_state.game_started:
             # 1. 콤보박스(Selectbox) 형태로 차량 문제 리스트 나열
             # 사용자가 보기 편하게 리스트 포맷팅 (예: "1. 아반떼")
             quiz_options = [f"{i+1}. {row['answer']}" for i, row in data.iterrows()]
+
+            
+            st.markdown(
+                """
+                <style>
+                /* 드롭다운 내부의 텍스트 입력 기능을 완전히 차단합니다. */
+                .stSelectbox div[role="combobox"] input {
+                    pointer-events: none !important;
+                }
+                </style>
+                """,
+                unsafe_allow_html=True
+            )
+            
             selected_quiz_idx = st.selectbox(
                 "📷 확인할 차량을 선택하세요", 
                 range(len(quiz_options)), 
                 format_func=lambda x: quiz_options[x]
             )
+
+            
             
             # 2. 선택된 차량의 데이터 추출 및 사진 보여주기
             target_quiz = data.iloc[selected_quiz_idx]
