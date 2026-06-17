@@ -162,37 +162,30 @@ if not st.session_state.game_started:
             st.markdown(
                 """
                 <script>
-                // 메인 화면 문서에서 드롭다운 리스트 클릭 이벤트를 직접 캡처합니다.
-                const config = { childList: true, subtree: true };
-                
-                const observer = new MutationObserver((mutations) => {
-                    // Streamlit의 드롭다운 리스트 아이템(옵션) 요소들을 찾습니다.
+                function fixMobileChrome() {
+                    // 1. 드롭다운 목록 아이템들을 전부 타겟팅
                     const options = parent.document.querySelectorAll('div[role="option"]');
                     
                     options.forEach(option => {
-                        if (!option.hasAttribute('data-click-fixed')) {
-                            option.setAttribute('data-click-fixed', 'true');
+                        if (!option.hasAttribute('data-touch-fixed')) {
+                            option.setAttribute('data-touch-fixed', 'true');
                             
-                            // 항목을 터치(클릭)하는 순간 바로 실행
-                            option.addEventListener('click', function() {
-                                setTimeout(() => {
-                                    // 1. 활성화된 모바일 키보드 즉시 강제 종료
-                                    if (parent.document.activeElement) {
-                                        parent.document.activeElement.blur();
-                                    }
-                                    // 2. 드롭다운 팝업 레이어를 강제로 닫기 위해 배경 터치 이벤트 시뮬레이션
-                                    const backdrop = parent.document.querySelector('.stSelectbox div[role="combobox"]');
-                                    if (backdrop) {
-                                        backdrop.click();
-                                    }
-                                }, 50); // 터치 반응 속도 최적화
-                            });
+                            // 꾹 누를 필요 없이 손가락이 닿는 순간('touchstart') 즉시 실행
+                            option.addEventListener('touchstart', function(e) {
+                                // 현재 스마트폰에 올라온 가상 키보드 즉시 아래로 내리기
+                                if (parent.document.activeElement) {
+                                    parent.document.activeElement.blur();
+                                }
+                                
+                                // 터치한 아이템을 강제로 클릭 처리하여 드롭리스트를 즉시 닫음
+                                this.click();
+                            }, { passive: true });
                         }
                     });
-                });
+                }
 
-                // 감지 시작
-                observer.observe(parent.document.body, config);
+                // 모바일 크롬의 렌더링 속도에 맞춰 0.1초마다 아주 가볍게 체크
+                setInterval(fixMobileChrome, 100);
                 </script>
                 """,
                 unsafe_allow_html=True
