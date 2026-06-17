@@ -212,7 +212,7 @@ if not st.session_state.game_started:
     selected_mode = st.radio("🎮 플레이 모드 선택", ["기본 연습 모드 (정답 즉시 확인)", "시험 모드 (20문항 후 결과 확인)"], index=0)
     
     # 모드에 따른 문제 수 설정
-    if "시험 모드" in selected_mode:"collapsed"
+    if "시험 모드" in selected_mode:
         st.info("📝 시험 모드는 총 20문제가 출제되며, 진행 중 정/오답이 공개되지 않습니다.")
         quiz_count = 20
     else:
