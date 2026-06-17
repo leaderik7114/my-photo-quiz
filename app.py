@@ -159,7 +159,24 @@ if not st.session_state.game_started:
                 format_func=lambda x: quiz_options[x]
             )
 
-            
+            st.markdown(
+                """
+                <style>
+                /* 입력창 영역의 포커스와 키보드 팝업만 부드럽게 차단하여 드롭다운이 정상적으로 닫히게 합니다 */
+                .stSelectbox div[role="combobox"] input {
+                    caret-color: transparent !important; /* 커서 숨기기 */
+                    user-select: none !important;        /* 텍스트 선택 방지 */
+                    -webkit-user-select: none !important;
+                }
+                /* 모바일 가상 키보드 유발을 방지하기 위해 input 창의 타이핑 포커스 해제 */
+                .stSelectbox input:focus {
+                    outline: none !important;
+                    border: none !important;
+                }
+                </style>
+                """,
+                unsafe_allow_html=True
+            )
             
             # 2. 선택된 차량의 데이터 추출 및 사진 보여주기
             target_quiz = data.iloc[selected_quiz_idx]
