@@ -151,7 +151,7 @@ if not st.session_state.game_started:
         if not data.empty:
             # 1. 콤보박스(Selectbox) 형태로 차량 문제 리스트 나열
             # 사용자가 보기 편하게 리스트 포맷팅 (예: "1. 아반떼")
-            quiz_options = [f"{i+1}. {row['answer']}" for i, row in data.iterrows()]
+            quiz_options = [f"{row['answer']}" for i, row in data.iterrows()]
 
             
             st.markdown(
