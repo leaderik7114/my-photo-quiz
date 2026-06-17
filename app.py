@@ -130,24 +130,6 @@ def get_intelligent_options(current_answer, all_answers):
     return final_options
 data = load_data()
 
-# 사이드바에 '문제 리스트 보기' 토글 추가
-st.sidebar.markdown("## 📊 퀴즈 정보")
-if st.sidebar.checkbox("현재 등록된 문제 리스트 보기"):
-    st.subheader("🚗 현재 출제 가능한 차량 리스트")
-    st.caption(f"총 {len(data)}개의 문제가 등록되어 있습니다.")
-    
-    # data 변수를 복사해서 사용자가 보기 좋은 형태로 정제
-    if not data.empty:
-        display_df = data[['answer', 'hint']].copy() if 'hint' in data.columns else data[['answer']].copy()
-        display_df.index = display_df.index + 1
-        display_df.columns = ['정답 차량명', '힌트 내용'] if 'hint' in data.columns else ['정답 차량명']
-        
-        # 가로 꽉 차게 예쁜 데이터프레임으로 출력
-        st.dataframe(display_df, use_container_width=True)
-    else:
-        st.info("등록된 데이터가 없습니다.")
-st.sidebar.write("---")
-
 # 3. 세션 상태 초기화
 if 'game_started' not in st.session_state: st.session_state.game_started = False
 if 'is_finished' not in st.session_state: st.session_state.is_finished = False
@@ -160,6 +142,42 @@ if not st.session_state.game_started:
     if os.path.exists("images/logo.png"): st.image("images/logo.png", use_container_width=True)
     st.markdown('<p class="main-title">🚗 엔카 사진 퀴즈</p>', unsafe_allow_html=True)
     st.markdown('<p class="sub-title">전면 후면의 사진을 보고 정답을 맞춰보세요!</p>', unsafe_allow_html=True)
+
+    # ---------------------------------------------------------
+    # ✨ [메인 화면] 문제 리스트 확인 및 사진 보기 기능 추가
+    # ---------------------------------------------------------
+    with st.expander("📋 현재 출제 가능한 문제 리스트 확인하기 (사진 보기)", expanded=False):
+        st.caption(f"총 {len(data)}개의 문제가 등록되어 있습니다. 차량명을 선택하면 등록된 사진을 미리 볼 수 있습니다.")
+        if not data.empty:
+            # 1. 콤보박스(Selectbox) 형태로 차량 문제 리스트 나열
+            # 사용자가 보기 편하게 리스트 포맷팅 (예: "1. 아반떼")
+            quiz_options = [f"{i+1}. {row['answer']}" for i, row in data.iterrows()]
+            selected_quiz_idx = st.selectbox("📷 사진을 확인할 차량을 선택하세요", range(len(quiz_options)), format_func=lambda x: quiz_options[x])
+            
+            # 2. 선택된 차량의 데이터 추출 및 사진 보여주기
+            target_quiz = data.iloc[selected_quiz_idx]
+            base_file = target_quiz['filename']
+            name, ext = os.path.splitext(base_file)
+            f_path, b_path = os.path.join("images", base_file), os.path.join("images", f"{name}후{ext}")
+            
+            # 가로로 두 개의 컬럼을 만들어 앞/뒷면 노출
+            img_cols = st.columns(2)
+            with img_cols[0]:
+                if os.path.exists(f_path):
+                    st.image(f_path, caption=f"{target_quiz['answer']} 앞면", use_container_width=True)
+                else:
+                    st.caption("⚠️ 전면 이미지 없음")
+            with img_cols[1]:
+                if os.path.exists(b_path):
+                    st.image(b_path, caption=f"{target_quiz['answer']} 뒷면", use_container_width=True)
+                else:
+                    st.caption("⚠️ 후면 이미지 없음")
+            
+            # 힌트 정보도 함께 노출
+            if 'hint' in target_quiz and target_quiz['hint']:
+                st.info(f"💡 <b>힌트 정보:</b> {target_quiz['hint']}", icon="ℹ️")
+        else:
+            st.info("등록된 데이터가 없습니다.")
 
     st.write("---")
     
