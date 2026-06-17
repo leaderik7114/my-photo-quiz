@@ -155,25 +155,31 @@ if not st.session_state.game_started:
             st.markdown(
                 """
                 <style>
-                /* 입력창 자체의 텍스트 커서 및 타이핑 기능 비활성화 */
-                .stSelectbox div[role="combobox"] input {
-                    pointer-events: none !important;
-                    caret-color: transparent !important;
+                /* 라디오 버튼의 세로 배열을 깔끔하게 다듬고 가독성 높이기 */
+                [data-testid="stRadio"] > div {
+                    gap: 10px;
+                    padding: 5px;
+                }
+                [data-testid="stRadio"] label {
+                    font-size: 14px !important;
+                    background-color: #f8f9fa;
+                    padding: 8px 12px;
+                    border-radius: 6px;
+                    border: 1px solid #e9ecef;
+                    display: block;
+                    width: 100%;
+                    cursor: pointer;
                 }
                 </style>
-                <script>
-                // 모바일 브라우저에서 input에 포커스되어 키보드가 올라오는 것을 방지 (readonly 강제 부여)
-                setTimeout(function() {
-                    var inputs = parent.document.querySelectorAll('.stSelectbox div[role="combobox"] input');
-                    inputs.forEach(function(input) {
-                        input.setAttribute('readonly', 'true');
-                    });
-                }, 1000);
-                </script>
                 """,
                 unsafe_allow_html=True
             )
-            selected_quiz_idx = st.selectbox("📷 확인할 차량을 선택하세요", range(len(quiz_options)), format_func=lambda x: quiz_options[x])
+            selected_quiz_idx = st.radio(
+                "📷 확인할 차량을 선택하세요", 
+                range(len(quiz_options)), 
+                format_func=lambda x: quiz_options[x],
+                label_visibility="collapsed" # 레이블 중복 방지
+            )
             
             # 2. 선택된 차량의 데이터 추출 및 사진 보여주기
             target_quiz = data.iloc[selected_quiz_idx]
@@ -206,7 +212,7 @@ if not st.session_state.game_started:
     selected_mode = st.radio("🎮 플레이 모드 선택", ["기본 연습 모드 (정답 즉시 확인)", "시험 모드 (20문항 후 결과 확인)"], index=0)
     
     # 모드에 따른 문제 수 설정
-    if "시험 모드" in selected_mode:
+    if "시험 모드" in selected_mode:"collapsed"
         st.info("📝 시험 모드는 총 20문제가 출제되며, 진행 중 정/오답이 공개되지 않습니다.")
         quiz_count = 20
     else:
