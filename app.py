@@ -162,35 +162,32 @@ if not st.session_state.game_started:
             st.markdown(
                 """
                 <script>
-                function fixMobileChrome() {
-                    // 1. 드롭다운 목록 아이템들을 전부 타겟팅
+                function fixMobileDropdown() {
+                    // 드롭다운 리스트의 아이템(차종 버튼들)을 전부 감지
                     const options = parent.document.querySelectorAll('div[role="option"]');
                     
                     options.forEach(option => {
-                        if (!option.hasAttribute('data-touch-fixed')) {
-                            option.setAttribute('data-touch-fixed', 'true');
+                        if (!option.hasAttribute('data-click-fixed')) {
+                            option.setAttribute('data-click-fixed', 'true');
                             
-                            // 꾹 누를 필요 없이 손가락이 닿는 순간('touchstart') 즉시 실행
-                            option.addEventListener('touchstart', function(e) {
-                                // 현재 스마트폰에 올라온 가상 키보드 즉시 아래로 내리기
+                            // 모바일에서 항목을 '툭' 터치하는 순간(pointerdown) 즉시 실행
+                            option.addEventListener('pointerdown', function() {
+                                // 1. 스마트폰 가상 키보드를 즉시 내립니다.
                                 if (parent.document.activeElement) {
                                     parent.document.activeElement.blur();
                                 }
-                                
-                                // 터치한 아이템을 강제로 클릭 처리하여 드롭리스트를 즉시 닫음
+                                // 2. 브라우저가 이벤트를 씹지 않고 아이템을 선택하도록 강제 클릭
                                 this.click();
-                            }, { passive: true });
+                            });
                         }
                     });
                 }
-
-                // 모바일 크롬의 렌더링 속도에 맞춰 0.1초마다 아주 가볍게 체크
-                setInterval(fixMobileChrome, 100);
+                // 모바일 크롬 반응 속도에 맞춰 0.1초마다 체크하여 이벤트 바인딩
+                setInterval(fixMobileDropdown, 100);
                 </script>
                 """,
                 unsafe_allow_html=True
             )
-            
             # 2. 선택된 차량의 데이터 추출 및 사진 보여주기
             target_quiz = data.iloc[selected_quiz_idx]
             base_file = target_quiz['filename']
