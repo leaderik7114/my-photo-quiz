@@ -162,17 +162,19 @@ if not st.session_state.game_started:
             st.markdown(
                 """
                 <script>
-                // 변동 사항을 주기적으로 감지하여 selectbox 입력창을 복제/수정합니다.
-                setTimeout(function() {
+                function disableMobileKeyboard() {
                     var inputs = parent.document.querySelectorAll('.stSelectbox div[role="combobox"] input');
                     inputs.forEach(function(input) {
-                        // 1. 키보드가 올라오지 않도록 읽기전용 설정
-                        input.setAttribute('readonly', 'true');
-                        
-                        // 2. 모바일 브라우저에서 강제로 포커싱되어 키보드가 튀는 현상 방지
-                        input.addEventListener('focus', function() { this.blur(); });
+                        if (!input.hasAttribute('data-kbd-fixed')) {
+                            // 가상 키보드가 아예 뜨지 않도록 설정 (인풋 포커스 기능을 완전히 대체)
+                            input.setAttribute('inputmode', 'none'); 
+                            input.setAttribute('readonly', 'true');
+                            input.setAttribute('data-kbd-fixed', 'true');
+                        }
                     });
-                }, 500);
+                }
+                // 주기적으로 콤보박스 요소를 감지하여 세팅 유지
+                setInterval(disableMobileKeyboard, 300);
                 </script>
                 """,
                 unsafe_allow_html=True
