@@ -130,6 +130,33 @@ def get_intelligent_options(current_answer, all_answers):
     return final_options
 data = load_data()
 
+if not df.empty:
+    # ---------------------------------------------------------
+    # 사이드바나 메인 화면에 '문제 리스트 보기' 토글 추가
+    # ---------------------------------------------------------
+    st.sidebar.markdown("## 📊 퀴즈 정보")
+    if st.sidebar.checkbox("현재 등록된 문제 리스트 보기"):
+        st.subheader("🚗 현재 출제 가능한 차량 리스트")
+        st.caption(f"총 {len(df)}개의 문제가 등록되어 있습니다.")
+        
+        # 사용자가 보기 편하게 테이블 형태로 출력
+        # 인덱스를 1부터 시작하도록 변경하여 가독성을 높임
+        display_df = df[['answer', 'hint']].copy()
+        display_df.index = display_df.index + 1
+        display_df.columns = ['정답 차량명', '힌트 내용']
+        
+        st.table(display_df)
+        st.markdown("---")
+
+    # ---------------------------------------------------------
+    # 3. 퀴즈 진행 로직 (예시)
+    # ---------------------------------------------------------
+    # 기존에 구현 중이시던 get_intelligent_options 함수 등을 활용해 
+    # 퀴즈 화면을 이 아래에 구성하시면 됩니다.
+    
+else:
+    st.warning("등록된 문제가 없어 퀴즈를 시작할 수 없습니다. answers.csv 파일을 확인해 주세요.")
+
 # 3. 세션 상태 초기화
 if 'game_started' not in st.session_state: st.session_state.game_started = False
 if 'is_finished' not in st.session_state: st.session_state.is_finished = False
