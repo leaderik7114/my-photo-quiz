@@ -162,19 +162,37 @@ if not st.session_state.game_started:
             st.markdown(
                 """
                 <script>
-                function disableMobileKeyboard() {
-                    var inputs = parent.document.querySelectorAll('.stSelectbox div[role="combobox"] input');
-                    inputs.forEach(function(input) {
-                        if (!input.hasAttribute('data-kbd-fixed')) {
-                            // 가상 키보드가 아예 뜨지 않도록 설정 (인풋 포커스 기능을 완전히 대체)
-                            input.setAttribute('inputmode', 'none'); 
-                            input.setAttribute('readonly', 'true');
-                            input.setAttribute('data-kbd-fixed', 'true');
+                // 메인 화면 문서에서 드롭다운 리스트 클릭 이벤트를 직접 캡처합니다.
+                const config = { childList: true, subtree: true };
+                
+                const observer = new MutationObserver((mutations) => {
+                    // Streamlit의 드롭다운 리스트 아이템(옵션) 요소들을 찾습니다.
+                    const options = parent.document.querySelectorAll('div[role="option"]');
+                    
+                    options.forEach(option => {
+                        if (!option.hasAttribute('data-click-fixed')) {
+                            option.setAttribute('data-click-fixed', 'true');
+                            
+                            // 항목을 터치(클릭)하는 순간 바로 실행
+                            option.addEventListener('click', function() {
+                                setTimeout(() => {
+                                    // 1. 활성화된 모바일 키보드 즉시 강제 종료
+                                    if (parent.document.activeElement) {
+                                        parent.document.activeElement.blur();
+                                    }
+                                    // 2. 드롭다운 팝업 레이어를 강제로 닫기 위해 배경 터치 이벤트 시뮬레이션
+                                    const backdrop = parent.document.querySelector('.stSelectbox div[role="combobox"]');
+                                    if (backdrop) {
+                                        backdrop.click();
+                                    }
+                                }, 50); // 터치 반응 속도 최적화
+                            });
                         }
                     });
-                }
-                // 주기적으로 콤보박스 요소를 감지하여 세팅 유지
-                setInterval(disableMobileKeyboard, 300);
+                });
+
+                // 감지 시작
+                observer.observe(parent.document.body, config);
                 </script>
                 """,
                 unsafe_allow_html=True
