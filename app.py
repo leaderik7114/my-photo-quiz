@@ -130,6 +130,23 @@ def get_intelligent_options(current_answer, all_answers):
     return final_options
 data = load_data()
 
+# 사이드바에 '문제 리스트 보기' 토글 추가
+st.sidebar.markdown("## 📊 퀴즈 정보")
+if st.sidebar.checkbox("현재 등록된 문제 리스트 보기"):
+    st.subheader("🚗 현재 출제 가능한 차량 리스트")
+    st.caption(f"총 {len(data)}개의 문제가 등록되어 있습니다.")
+    
+    # data 변수를 복사해서 사용자가 보기 좋은 형태로 정제
+    if not data.empty:
+        display_df = data[['answer', 'hint']].copy() if 'hint' in data.columns else data[['answer']].copy()
+        display_df.index = display_df.index + 1
+        display_df.columns = ['정답 차량명', '힌트 내용'] if 'hint' in data.columns else ['정답 차량명']
+        
+        # 가로 꽉 차게 예쁜 데이터프레임으로 출력
+        st.dataframe(display_df, use_container_width=True)
+    else:
+        st.info("등록된 데이터가 없습니다.")
+st.sidebar.write("---")
 
 # 3. 세션 상태 초기화
 if 'game_started' not in st.session_state: st.session_state.game_started = False
